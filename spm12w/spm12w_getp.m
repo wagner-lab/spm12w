@@ -90,11 +90,15 @@ p_ = eval(args.type);
 % Assign para file path to p struct
 p_.para_file = args.para_file;
 
-% Set potentially missing path variables to empty strings.
+% Set potentially missing path variables to empty strings or else loading
+% defaults will cause errors due to missing variables.
 if args.type == 'p'
-   p_.glm_name = '';
-   p_.rfx_dir  = '';
-   p_.ons_dir  = '';
+    zerofields = {'glm_name','rfx_name','ons_dir'};
+    for zfield = zerofields
+        if ~isfield(p_,zfield{1})
+            p_.(zfield{1}) = ''; % set field to empty string
+        end
+    end
 end
 
 % Load defaults file, assign to var then delete def

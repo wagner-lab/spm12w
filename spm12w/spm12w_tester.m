@@ -1,13 +1,13 @@
 function spm12w_tester(varargin)
-% spm12w_tester(tests, subjects)
+% spm12w_tester(tests, sids)
 %
 % Inputs
 % ------
-% tests:        Number (e.g., 3) or vector of numbers (e.g. [1,2,3,4,5]) or the
-%               special word 'all' to perform all tests. (Default: 'all')
+% tests: Number (e.g., 3) or vector of numbers (e.g. [1,2,3,4,5]) or the
+%        special word 'all' to perform all tests. (Default: 'all')
 %
-% subjects:     Cell array of subject ids. If left unspecified, a dialog box 
-%               will appear asking the user to select subjects.
+% sids:  Cell array of subject ids. If left unspecified, a dialog box 
+%        will appear asking the user to select subjects.
 %
 % This testing function is designed to run a new installation of spm12w
 % through most of its core functions to ensure everything is functioning 
@@ -41,7 +41,7 @@ function spm12w_tester(varargin)
 %       >> spm12w_tester
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: February, 2013 | Updated: April, 2015
+% # Author: Dylan Wagner | Created: February, 2013 | Updated: May, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -149,6 +149,8 @@ for testcase = args.tests
             % Reset the universe
             % Delete dirs and reset the tutorial dataset to a virgin state
             fprintf('Reseting example data back to original state...\n');
+            % Turn off diary as it will prevent dir removal if it was left on
+            diary off
             deldirs = {'qa','analysis','aux/onsets/ppi','notes','prep','raw'};
             for deldir = deldirs
                 if exist(fullfile(pwd,deldir{1}),'dir')
