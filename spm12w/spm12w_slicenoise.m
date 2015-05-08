@@ -59,7 +59,7 @@ if scalf(1) > 1
     spm12w_logger('msg',['[DEBUG] Data will be scaled prior to slice ' ...
               'noise calculation'],'level',args.loglevel)
 end
-% Need bigmask_3x3x3. This assumes data is normalized.
+% This assumes data is normalized.
 mask_name = args.mask;
 M         = spm_vol(mask_name);
 M.dat     = spm_read_vols(M);
@@ -86,6 +86,8 @@ for kk=1:nscan
     end
 end
 % Calculate slice noise
+spm12w_logger('msg',sprintf(['[DEBUG] Calculating slice noise for %d ', ...
+              'volumes'], nscan),'level',args.loglevel)
 for kk=1:nscan  % for every input file
     gv(kk) = spm_global(V(kk));
     [dat1,loc] = spm_read_vols(V(kk),1);  % read with zero masking 
@@ -112,17 +114,17 @@ for kk=1:nscan  % for every input file
     noise(:,kk) = nanmean(scan_noise)'; 
 end
 % Make slices figure (now 200% more better!!!)
-th  = 15;  %default was 20 from slices_defaults.m
-wth = 25;  %default was 30 lowering defaults since new coil -DDW Feb/12 
+th  = 5;  %default was 20 from slices_defaults.m
+wth = 15;  %default was 30 lowering defaults since new coil -DDW Feb/12 
 colormap('default');
 subplot(3,1,1)
-imagesc(noise,[0,80])
+imagesc(noise,[0,40])
 ttl = ['Filetype: ',strtok(spm_str_manip(args.niifiles{1},'t'),'_')];
 title(ttl);
 subplot(3,1,2)
-[n,b] = hist(noise(:),[0:80]);
+[n,b] = hist(noise(:),[0:40]);
 bar(b,n);
-set(gca,'xlim',[0,80])
+set(gca,'xlim',[0,40])
 title('distribution of slice noise')
 hold on
 plot([th,th],[0,max(n)],'r-')
@@ -144,4 +146,5 @@ title('rotation (deg)')
 titleax = axes('Position',[0.12 0.75 0.8 0.2],'Parent',F,'Visible','off');
 set(get(titleax,'Title'),'String','Slice Noise Analysis','FontSize',16,'FontWeight','Bold');
 % Print
+spm12w_logger('msg',['[DEBUG] Printing slice noise figure'],'level',args.loglevel)
 print(F, args.psname, '-dpsc2','-painters','-append','-noui')       
