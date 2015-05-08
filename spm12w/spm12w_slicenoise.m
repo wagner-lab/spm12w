@@ -6,9 +6,12 @@ function spm12w_slicenoise(varargin)
 % niifiles : A cell array of full paths to nifti files(s) for tSNR
 %            calcualtion.
 %
-% radata  : A cell array of realignment data (i.e., load realignment 
-%           parameters into an array or use p.ra if called from
-%           spm12w_preprocess.m
+% radata   : A cell array of realignment data (i.e., load realignment 
+%            parameters into an array or use p.ra if called from
+%            spm12w_preprocess.m)
+%
+% mask     : Full path to a mask file to constrain slice calcualtions
+%            (usually the default mask contained in p.mask)
 %
 % psname   : Name of .ps file containing figures displaying SNR plots.
 %            Default is preprocess.ps
@@ -23,16 +26,16 @@ function spm12w_slicenoise(varargin)
 %
 % Calculate slice noise on two runs of data
 %   >> spm12w_slicenoise('niifiles', {'./epi_r01.nii', './epi_r02.nii'},
-%                         'radata', p.ra)
+%                        'radata', p.ra, 'mask', p.mask)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: November, 2014 | Updated: December, 2014
+% # Author: Dylan Wagner | Created: November, 2014 | Updated: May, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
-args_defaults = struct('niifiles','','radata','', ...
+args_defaults = struct('niifiles','','radata','','mask','',...
                        'psname','preprocess.ps','loglevel', 1);
-args = spm12w_args('nargs',2, 'defaults', args_defaults, 'arguments', varargin);
+args = spm12w_args('nargs',4, 'defaults', args_defaults, 'arguments', varargin);
 
 % Setup figure (if it exists, clear it, otherwise make it).
 F = spm_figure('FindWin','Graphics');
@@ -57,7 +60,7 @@ if scalf(1) > 1
               'noise calculation'],'level',args.loglevel)
 end
 % Need bigmask_3x3x3. This assumes data is normalized.
-mask_name = which('bigmask_3x3x3.nii'); 
+mask_name = args.mask;
 M         = spm_vol(mask_name);
 M.dat     = spm_read_vols(M);
 % work out good neighbours
