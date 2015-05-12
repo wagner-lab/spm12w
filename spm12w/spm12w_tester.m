@@ -57,8 +57,11 @@ end
 % empty otherwise there are no sids to select for other tests.
 if isempty(args.sids) 
     if any(args.tests==0)
+        % Prepare 
+        % Extract, copy and rename files according to spm12w convenctions.
+        % Copied data will be in root/raw directory.
         spm12w_logger('msg',sprintf(['Data is not prepared... Preparing ', ...
-              'subject selection']))
+              'subject selection']))    
         spm12w_prepare
     end
     if any(args.tests==1) %For test 1 check in raw
@@ -74,12 +77,6 @@ spm12w_logger('msg',sprintf(['Beginning tutorial dataset tests on %d ', ...
 
 for testcase = args.tests
     switch testcase     
-        case 0 
-            % Prepare 
-            % Extract, copy and rename files according to spm12w convenctions.
-            % Copied data will be in root/raw directory.
-            spm12w_prepare
-            
         case 1 
             % Preprocessing
             % We only need to preprocess functional datasets once for GLM &
