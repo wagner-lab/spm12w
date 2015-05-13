@@ -10,7 +10,7 @@ function glm = spm12w_glm_build(varargin)
 %          parameters file via spm12w_getp. 
 %
 % spm12w_glm_build will gather onset files and output a design matrix. In
-% practice spm12w_glm_build is called by spm12w_glm_design multiple times
+% practice spm12w_glm_build is called by spm12w_glm_compute multiple times
 % to build a complete design matrix (i.e., once for events, once for
 % including outliers and again for including movement parameters). 
 %

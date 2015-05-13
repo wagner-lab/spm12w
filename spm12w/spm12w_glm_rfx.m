@@ -41,7 +41,7 @@ function spm12w_glm_rfx(varargin)
 %                        'rfx_dir', 'rfx_tutorial')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: April, 2015
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: May, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -54,6 +54,11 @@ rfx = spm12w_getp('type','glm', 'para_file',args.glm_file);
 % If rfx_dir argument was not provided, get rfx_dir from glm parameters
 if isempty(args.rfx_dir)
     args.rfx_dir = rfx.rfxdir;
+end
+
+% Check for cell in case user provided allsids as string.
+if ~iscell(args.sids)
+    args.sids = cellstr(args.sids);
 end
 
 % If sids argument was not provided, open dialog window to get sids.
