@@ -51,7 +51,7 @@ args = spm12w_args('nargs',2, 'defaults', args_defaults, 'arguments', varargin);
 glm = spm12w_getp('type','glm', 'sid',args.sid, 'para_file',args.glm_file);
 
 % Setup directories for GLM analysis. 
-spm12w_dirsetup('dirtype','glm_clean','params',glm);
+spm12w_dirsetup('dirtype','glm','params',glm);
 
 % Setup logfile
 spm12w_logger('msg','setup_glm', 'level',glm.loglevel, 'params',glm)

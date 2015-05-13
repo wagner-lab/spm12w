@@ -69,10 +69,10 @@ args = spm12w_args('nargs',0, 'defaults', args_defaults, 'arguments', varargin);
 roi = spm12w_getp('type','roi', 'para_file',args.roi_file);
 
 % Setup directories for roi analysis. 
-spm12w_dirsetup('dirtype','roi_clean','params',roi);
+spm12w_dirsetup('dirtype','roi','params',roi);
 
 % Check for cell in case user provided allsids as string.
-if ~iscell(args.sids)
+if ~iscell(args.sids) && ~isempty(args.sids)
     args.sids = cellstr(args.sids);
 end
 

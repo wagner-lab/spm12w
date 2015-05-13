@@ -4,7 +4,7 @@ function spm12w_dirsetup(varargin)
 % Input
 % -----
 % dirtype : Type of directory to setup (e.g., 'prep_clean', 'prep_setup', 
-%           'glm_clean', 'glm_setup'). (Default='prep_clean').
+%           'glm', 'glm_setup'). (Default='prep_clean').
 %
 % params  : A structure of parameters (e.g., p, glm, etc.). 
 %
@@ -31,22 +31,22 @@ function spm12w_dirsetup(varargin)
 %   'prep_setup' : spm12w_dirsetup copy raw nifti data to the p.datadir for 
 %                  preprocessing, renaming them appropriately.
 %
-%   'glm_clean'  : spm12w_dirsetup will check for a pre-existing directory and 
+%   'glm'        : spm12w_dirsetup will check for a pre-existing directory and 
 %                  will preseve log files by moving them to an archive directory
 %                  with a date and time stamp. All other files and directories
 %                  within the glm analysis directory will be deleted.
 %
-%   'con_clean'  : spm12w_dirsetup will check the pre-existing glm directory and 
+%   'con'        : spm12w_dirsetup will check the pre-existing glm directory and 
 %                  remove all prior con and spmT files (to prevent outdated
 %                  con files from lingering around). 
 %
-%   'rfx_clean'  : spm12w_dirsetup will check the pre-existing rfx directory and 
+%   'rfx'        : spm12w_dirsetup will check the pre-existing rfx directory and 
 %                  remove all prior files associated with the rfx analysis.
 %                  Any prior spmT and SPM.mat files will be preserved by 
 %                  moving them to an archive directory with a date and time
 %                  stamp.
 %
-%   'roi_clean'  : spm12w_dirsetup will check the pre-existing roi directory and 
+%   'roi'        : spm12w_dirsetup will check the pre-existing roi directory and 
 %                  remove all prior files associated with the roi analysis.
 %                  Any prior roi_name.txt and roi_stats.txt files will be
 %                  preserved by moving them to an archive directory with a 
@@ -55,8 +55,8 @@ function spm12w_dirsetup(varargin)
 % Examples:
 %
 %   >> spm12w_dirsetup('dirtype', 'prep_clean', 'params', p)
-%   >> spm12w_dirsetup('dirtype', 'glm_clean', 'params', glm)
-%   >> spm12w_dirsetup('dirtype', 'roi_clean', 'params', roi)
+%   >> spm12w_dirsetup('dirtype', 'glm', 'params', glm)
+%   >> spm12w_dirsetup('dirtype', 'roi', 'params', roi)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
 % # Author: Dylan Wagner | Created: November, 2014 | Updated: May, 2015
@@ -168,7 +168,7 @@ switch args.dirtype
             end
         end
 
-    case 'glm_clean'
+    case 'glm'
         spm12w_logger('msg',sprintf('Checking glm directory for subject: %s', ...
                       dirp.sid),'level',dirp.loglevel)
         if ~exist(dirp.glmdir,'dir')
@@ -222,7 +222,7 @@ switch args.dirtype
             end
         end
        
-    case 'con_clean'
+    case 'con'
         spm12w_logger('msg',sprintf('Checking glm directory for subject: %s', ...
                       dirp.sid),'level',dirp.loglevel)
         if ~exist(dirp.glmdir,'dir')
@@ -243,7 +243,7 @@ switch args.dirtype
                 end     
             end
         end
-   case 'rfx_clean'
+   case 'rfx'
    % For rfx dirs, we need to make them on the fly based on dirp.rfx_conds var
     for rfxcondir = dirp.rfx_conds
         rfxdir = fullfile(dirp.rfxdir,rfxcondir{1});
@@ -321,7 +321,7 @@ switch args.dirtype
             end
         end          
     end
-    case 'roi_clean'
+    case 'roi'
         spm12w_logger('msg',sprintf('Checking roi directory: %s', ...
                       dirp.roidir),'level',dirp.loglevel)
         if ~exist(dirp.roidir,'dir')
@@ -344,7 +344,7 @@ switch args.dirtype
 end
 
 % Print completed message (tailor msg if rfx clean or roi clean).
-if ismember(args.dirtype,{'rfx_clean','roi_clean'})
+if ismember(args.dirtype,{'rfx','roi'})
     dirmsg = sprintf(['[DEBUG] Finished setting up directories ',...
                  'for dirtype: %s'], args.dirtype);
 else

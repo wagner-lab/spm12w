@@ -71,7 +71,7 @@ elseif numel(args.sids) == 1 && strcmp(args.sids,'allsids')
 end
 
 % Setup directories for RFX analysis. Archive prior spmT file and spm.mat.
-spm12w_dirsetup('dirtype','rfx_clean','params',rfx);
+spm12w_dirsetup('dirtype','rfx','params',rfx);
 
 % Perform rfx analysis on the specified conditions
 for rfxcondir = rfx.rfx_conds

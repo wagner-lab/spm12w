@@ -53,7 +53,7 @@ args = spm12w_args('nargs',2, 'defaults', args_defaults, 'arguments', varargin);
 glm_con = spm12w_getp('type','glm', 'sid',args.sid, 'para_file',args.glm_file);
 
 % Setup directories for Contrast
-spm12w_dirsetup('dirtype','con_clean','params',glm_con);
+spm12w_dirsetup('dirtype','con','params',glm_con);
 
 % Goto glm directory
 cd(glm_con.glmdir)
