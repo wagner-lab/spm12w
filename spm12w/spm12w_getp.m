@@ -44,7 +44,7 @@ function parameters = spm12w_getp(varargin)
 %                     'para_file','scripts/glm_h8tjazz.m')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: May, 2012 | Updated: December, 2014
+% # Author: Dylan Wagner | Created: May, 2012 | Updated: May, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -92,15 +92,21 @@ p_.para_file = args.para_file;
 
 % Set potentially missing path variables to empty strings or else loading
 % defaults will cause errors due to missing variables.
-if args.type == 'p'
-    zerofields = {'glm_name','rfx_name','ons_dir'};
-    for zfield = zerofields
-        if ~isfield(p_,zfield{1})
-            p_.(zfield{1}) = ''; % set field to empty string
-        end
+
+if strcmp(args.type,'p')
+    zerofields = {'glm_name','rfx_name','ons_dir', 'roi_dir'}; 
+elseif strcmp(args.type,'roi')
+    zerofields = {'rfx_name','ons_dir', 'prep_name'};
+else
+    zerofields = {};
+end
+for zfield = zerofields
+    if ~isfield(p_,zfield{1})
+        p_.(zfield{1}) = ''; % set field to empty string
     end
 end
-
+   
+    
 % Load defaults file, assign to var then delete def
 def_file = which('spm12w_defaults.m');
 run(def_file)     % def structure now in namespace

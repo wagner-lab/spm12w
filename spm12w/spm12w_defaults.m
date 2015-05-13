@@ -27,7 +27,7 @@
 % if using options 2 or 3, that your parameters or glm file contains a typo. 
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2014 | Updated: December, 2014
+% # Author: Dylan Wagner | Created: March, 2014 | Updated: May, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % spm12w naming conventions
@@ -66,7 +66,7 @@ def.glmlog       = sprintf('%s.log', p_.glm_name);  % Default glm logfile name.
 % def.imgfiles:   The dir where img files are location (e.g., bigmask, etc.)
 % def.roimask:    The dir where image based masks are stored
 % def.roispecs:   The dir where roi spec and variable files can be found
-% def.rfxarchtok: The dir name where prior rfx analysis will be archived
+% def.archtok:    The dir name where prior analyses will be archived
 def.spm12wloc  = fileparts(which('spm12w.m'));
 def.root       = p_.study_dir;
 def.anadir     = fullfile(def.root,'analysis',p_.username);
@@ -77,16 +77,14 @@ def.qadir      = fullfile(def.root, 'qa', p_.prep_name);
 def.rawdir     = fullfile(def.root, 'raw', p_.sid);
 def.scriptsdir = fullfile(def.root, 'scripts', p_.username);
 def.datadir    = fullfile(def.prepdir, p_.sid);
-def.preparch   = fullfile(def.datadir, 'archive');
 def.onsdir     = fullfile(def.auxdir, 'onsets', p_.ons_dir);
 def.glmdir     = fullfile(def.anadir, 'glm', p_.glm_name, p_.sid);
-def.glmarch    = fullfile(def.glmdir, 'archive');
 def.rfxdir     = fullfile(def.anadir, 'rfx', p_.rfx_name);
+def.roidir     = fullfile(def.anadir, 'roi', p_.roi_name);
 def.imgfiles   = fullfile(def.spm12wloc,'img_files');
 def.roimask    = fullfile(def.spm12wloc,'roi_masks');
 def.roispecs   = fullfile(def.scriptsdir,'roi');
-def.rfxarchtok = 'archive'; % we can't specify full path yet as its generated 
-                            % from the glm conditions specified by user
+def.archtok = 'archive'; 
                     
 % spm12w defaults for preprocessing
 % Preprocessing defaults
@@ -194,3 +192,6 @@ def.hrfbasis  = 8;      %For FIR: Number of bins per window
 %            'anova1'     %not yet implemented
 def.rfx_type  = 'one-sample';
 def.rfx_im    = 1; % Implicit masking for NaN & 0 values at 2nd level.
+
+% ROI Specification
+def.roi_size  = 6; % Default roi size is 6mm
