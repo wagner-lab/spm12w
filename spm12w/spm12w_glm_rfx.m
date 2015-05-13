@@ -57,7 +57,7 @@ if isempty(args.rfx_dir)
 end
 
 % Check for cell in case user provided allsids as string.
-if ~iscell(args.sids)
+if ~iscell(args.sids) && ~isempty(args.sids)
     args.sids = cellstr(args.sids);
 end
 

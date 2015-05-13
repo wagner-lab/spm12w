@@ -94,9 +94,11 @@ p_.para_file = args.para_file;
 % defaults will cause errors due to missing variables.
 
 if strcmp(args.type,'p')
-    zerofields = {'glm_name','rfx_name','ons_dir', 'roi_dir'}; 
+    zerofields = {'glm_name','rfx_name','ons_dir', 'roi_name'}; 
 elseif strcmp(args.type,'roi')
     zerofields = {'rfx_name','ons_dir', 'prep_name'};
+elseif strcmp(args.type,'glm')
+    zerofields = {'roi_name'}; 
 else
     zerofields = {};
 end
