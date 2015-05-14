@@ -147,6 +147,7 @@ def.boundbox   = [-78 -117 -72;...
                               %SPM8 default is [-78 -112 -50; 78 76 85] 
 							  %But that's for 2x2x2.
                               %Ours works better for 3x3x3
+def.resample   = 0;           %Resampling for voxel extraction in spm12w_readnii
                               
 % Brain mask
 % Can use either bigmask in 1x1x1 or 3x3x3
