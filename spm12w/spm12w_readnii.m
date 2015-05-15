@@ -10,8 +10,13 @@ function niidata = spm12w_readnii(varargin)
 %
 % voxels   : Matrix of voxels in (e.g.,[x,y,z; x,y,z]) to extract data from.
 %
+% sphere   : Center coordinate and diameter (d) of a sphere from which to 
+%            extract values (e.g., [x,y,z,d]). Data for all voxels within the
+%            sphere will be returned unless vxavg = 1 (see below). 
+%
 % mask     : Mask image of zeros and ones from which voxel data will be
-%            extracted. Must be in same space as input nifti files. 
+%            extracted. Must be in same space as input nifti files. Data for 
+%            all voxels within the mask will be returned unless vxavg = 1.  
 %
 % vxavg    : Return only voxelwise average of extracted values. This is for 
 %            both voxels and image masks. In other words, thsi returns the 
@@ -20,8 +25,9 @@ function niidata = spm12w_readnii(varargin)
 %
 % hdr_only : Flag to return only the hdr and not load any data (default=0) 
 %
-% vox_only : Flag to return only the voxel values and not the full data
-%            matrix (default=1)
+% vox_only : Flag to return only the voxel, sphere or mask values and not the 
+%            full data matrix (default=1). Only functions if voxels, spehres
+%            or masks have been specified. 
 %
 % resample : Type of resampling for extracting voxel values. Resampling can
 %            occur if voxels are off the voxel grid (i.e., if voxel step size 
@@ -116,9 +122,9 @@ niidata = struct('hdrs',{}); % Init empty structure
 for hdr = hdrs
     % Get data if hdr_only = 0, or vox_only = 0 otherwise ignore vox_only
     if args.hdr_only == 0
-        if ~isempty(args.voxels) && args.vox_only == 0
+        if (~isempty(args.voxels) || ~isempty(args.mask) || ~isempty(args.sphere)) && args.vox_only ==0
             data = spm_read_vols(hdr{1});  
-        elseif isempty(args.voxels)
+        elseif isempty(args.voxels) && isempty(args.mask) && isempty(args.sphere)
             data = spm_read_vols(hdr{1});  
         end
     end
@@ -143,6 +149,17 @@ for hdr = hdrs
         end
     end
 
+    % Get data at sphere
+    if ~isempty(args.sphere)
+        %Load mask, find where mask = 1 and apply to Y
+        mask_hd  = spm_vol(mask);
+        mask_vol = spm_read_vols(mask_hd);
+        mask_fname = spm_str_manip(mask_hd.fname,'t');
+        mask_vx  = length(find(mask_vol));
+    use spm ROI
+    
+    end
+    
     % Get data at masks
     if ~isempty(args.mask)
         %Load mask, find where mask = 1 and apply to Y
@@ -150,7 +167,7 @@ for hdr = hdrs
         mask_vol = spm_read_vols(mask_hd);
         mask_fname = spm_str_manip(mask_hd.fname,'t');
         mask_vx  = length(find(mask_vol));
-    
+    use spm ROI
     
     end
     
