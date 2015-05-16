@@ -12,16 +12,23 @@ function niidata = spm12w_readnii(varargin)
 %
 % sphere   : Center coordinate and diameter (d) of a sphere from which to 
 %            extract values (e.g., [x,y,z,d]). Data for all voxels within the
-%            sphere will be returned unless vxavg = 1 (see below). 
+%            sphere will be returned unless vox_avg = 1 (see below). 
 %
 % mask     : Mask image of zeros and ones from which voxel data will be
 %            extracted. Must be in same space as input nifti files. Data for 
-%            all voxels within the mask will be returned unless vxavg = 1.  
+%            all voxels within the mask will be returned unless vox_avg = 1.  
 %
-% vxavg    : Return only voxelwise average of extracted values. This is for 
+% vox_avg    : Return only voxelwise average of extracted values. This is for 
 %            both voxels and image masks. In other words, thsi returns the 
 %            average of all voxels in an ROI defined either by voxels or a mask.
 %            (default=0)
+%
+% vox_svd    : Returns first eigenvariate of extracted values. This is for 
+%            both voxels, spheres and image masks. In other words, this returns
+%            the average timeseries of all voxels in an ROI. Typically this 
+%            should be used on timeseries data (4D files) and not con images 
+%            (3D files). Note that vox_avg and vox_svd cannot both be 1. 
+%            (default=0).
 %
 % hdr_only : Flag to return only the hdr and not load any data (default=0) 
 %
@@ -35,17 +42,19 @@ function niidata = spm12w_readnii(varargin)
 %            space). 0 = nearest neighbor, 1 = trilinear interpolation.
 %            (default = 0). 
 %
-% loglevel : Optional log level for spm12w_logger corresponding (default=1)
+% loglevel : Optional log level for spm12w_logger (default=1)
 %
 % Returns
 % -------
-% niidata : A structure containing the fields hdr, data, and voxels. If
-%           hdr_only=1 then only the hdr is returned if vox_only=1 then only 
-%           the data for the extracted voxels is returned along with the voxels 
-%           field which lists the coordiantes and the hdr. 
+% niidata : A structure containing fields describing the head, the voxels
+%           used to extract data (for voxels, sphere and mask) as well as
+%           the data extracted from those ROIs. If hdr_only=1 then only the 
+%           hdr is returned if vox_only=1 then only the data for the extracted 
+%           ROI is returned along with the hdr and the voxels that are 
+%           contained within the ROI. 
 %
 % All purpose tool for reading in nifti data. Returns the header, the full data
-% matrix and/or the data at individual voxels or within image masks. 
+% matrix and/or the data at voxels/spheres/masks.
 %
 % Examples:
 %
@@ -58,13 +67,14 @@ function niidata = spm12w_readnii(varargin)
 % Extract data for multiple voxels and average the result (voxelwise)
 %   >> vxdata = spm12w_readnii('niifiles', 'epi_r01.nii', ...
 %                              'voxels', [10,10,-22;13,13,26;30,50,30],...
-%                              'vxavg', 1)
+%                              'vox_avg', 1)
 %
-% Extract data for multiple voxels and a mask in multiple files with different
-% ranges and trilinear resampling
+% Extract data for multiple voxels, an 8mm sphere and a mask in multiple files 
+% with different ranges and trilinear resampling
 %   >> vxdata = spm12w_readnii('niifiles', {'epi_r01.nii','epi_r02.nii'}, ...
-%                              'range', {[1:50],[10:60],[30:40]}, ...
+%                              'range', {[1:50],[10:60]}, ...
 %                              'voxels', [10,10,-22;13,13,26;30,50,30], ...
+%                              'sphere', [9,9,9,8], ...
 %                              'mask', 'shatners_bassoon.nii',...
 %                              'resample', 1}
 %
@@ -73,9 +83,9 @@ function niidata = spm12w_readnii(varargin)
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
-args_defaults = struct('niifiles','', 'range','', 'voxels',[], 'mask','', ...
-                'vxavg',0, 'hdr_only',0, 'vox_only',1, 'resample',0,...
-                'loglevel', 1);
+args_defaults = struct('niifiles','', 'range','', 'voxels',[], 'sphere','',...
+                'mask','', 'vox_avg',0, 'vox_svd',0, 'hdr_only',0, ...
+                'vox_only',1, 'resample',0, 'loglevel', 1);
 args = spm12w_args('nargs',2, 'defaults', args_defaults, 'arguments', varargin);
 
 % If single niifile is given as string, convert to cell array.
@@ -128,57 +138,81 @@ for hdr = hdrs
             data = spm_read_vols(hdr{1});  
         end
     end
-
-    % Get data at voxels (note voxdata is timeXvoxels)
-    if ~isempty(args.voxels)
-        voxels = args.voxels;
-        spm12w_logger('msg',sprintf(['[DEBUG] Extracting voxel data for %d ',...
-                      'voxels.'],size(voxels,1)),'level',args.loglevel)          
-        % Convert MNI XYZ coordinates to voxel index (vox is coordinateXvoxel)
-        vox = inv(hdr{1}(1).mat) * [voxels'; ones(1,size(voxels,1))];
-        % Init voxdata
-        voxdata = zeros(length(hdr{1}),size(voxels,1));
-        % Extract voxel values
-        for vol_i = 1:length(hdr{1})
-            voxdata(vol_i,:) = spm_sample_vol(hdr{1}(vol_i),vox(1,:),vox(2,:),vox(3,:),...
-                                 args.resample);
-        end
-        % Average voxdata if user requests (i.e., avg in roi)
-        if args.vxavg == 1
-            voxdata = nanmean(voxdata,2);
-        end
-    end
-
-    % Get data at sphere
-    if ~isempty(args.sphere)
-        %Load mask, find where mask = 1 and apply to Y
-        mask_hd  = spm_vol(mask);
-        mask_vol = spm_read_vols(mask_hd);
-        mask_fname = spm_str_manip(mask_hd.fname,'t');
-        mask_vx  = length(find(mask_vol));
-    use spm ROI
     
-    end
-    
-    % Get data at masks
-    if ~isempty(args.mask)
-        %Load mask, find where mask = 1 and apply to Y
-        mask_hd  = spm_vol(mask);
-        mask_vol = spm_read_vols(mask_hd);
-        mask_fname = spm_str_manip(mask_hd.fname,'t');
-        mask_vx  = length(find(mask_vol));
-    use spm ROI
-    
-    end
-    
-
-    
-    
-    % Create return structure
+    % Assign hdr information to return structure
     niidata(end+1).hdrs = hdr{1};
-    for datavars = {'data','voxels','voxdata','maskdata'}
-        if exist(datavars{1}, 'var')
-            niidata(end).(datavars{1}) = eval(datavars{1});
-        end   
+    
+    % Iterate over voxels, spheres and masks
+    for roi_type = {'voxels','sphere','mask'}
+        roi = args.(roi_type{1}); % Assign current roi_var to roi for elegance
+        if ~isempty(roi)
+            switch(roi_type{1})
+                case 'voxels'
+                    roi = roi'; % transpose since spm expects coordinateXvoxel)
+                    spm12w_logger('msg',sprintf(['[DEBUG] Extracting voxel ',...
+                                  'data for %d voxels.'],size(roi,2)),...
+                                  'level',args.loglevel)   
+             
+                case 'sphere'
+                    xY = struct('def','sphere','xyz',roi(1:3)',...
+                                'spec',roi(4));
+                    % Get voxels that correspond to that sphere in img space 
+                    [~, roi, ~] = spm_ROI(xY, hdr{1});
+                    % Inform user of sphere details
+                    spm12w_logger('msg',sprintf(['[DEBUG] Extracting voxel ',...
+                                  'data for a sphere (%dmm diameter) ',...
+                                  'containing %d voxels.'], xY.spec, ...
+                                  size(roi,2)),'level',args.loglevel) 
+                    
+                case 'mask'
+                    xY = struct('def','mask','spec',roi);
+                    % Get voxels from sphere in img space of niifile
+                    [~, roi, ~] = spm_ROI(xY, hdr{1});
+                    % Inform user of sphere details
+                    spm12w_logger('msg',sprintf(['[DEBUG] Extracting voxel ',...
+                            'data for nask (%s) containing %d voxels.'], ...
+                             spm_str_manip(xY.def, 't'), size(roi,2)), ...
+                            'level',args.loglevel) 
+            end
+            % Convert XYZ coords to vox indices (voxidx is coordinateXvoxel)
+            voxidx = hdr{1}(1).mat \ [roi; ones(1,size(roi,2))];
+            % Init voxdata to store extracted values
+            voxdata = zeros(length(hdr{1}),size(roi,2));
+            % Extract voxel values
+            for vol_i = 1:length(hdr{1})
+                voxdata(vol_i,:) = spm_sample_vol(hdr{1}(vol_i),voxidx(1,:),...
+                               voxidx(2,:),voxidx(3,:), args.resample);
+            end
+            % Average voxdata if user requests it (i.e., avg in roi)
+            if args.vox_avg == 1
+                voxdata = nanmean(voxdata,2);
+                spm12w_logger('msg','[DEBUG] Averaging extracted voxel data.',...
+                'level',args.loglevel) 
+            end
+            % Compute first eigenvariate if user requests it (i.e., svd in roi)
+            if args.vox_svd == 1
+                 spm12w_logger('msg','SVD DOESN''T WORK YET!!!',...
+                'level',args.loglevel) 
+            end
+            % Assign extracted voxel data to appropriate field
+            switch(roi_type{1})
+                case 'voxels'
+                    niidata(end).vox = roi;
+                    niidata(end).voxdata = voxdata;
+             
+                case 'sphere'
+                    niidata(end).spherevox = roi;
+                    niidata(end).spheredata = voxdata;
+                    
+                case 'mask'
+                    niidata(end).maskvox = roi;
+                    niidata(end).maskdata = voxdata;
+            end
+            % Assign the full data matrix if it exists.
+            if exist('data', 'var')
+                niidata(end).data = data;
+            end   
+        end
     end
 end
+
