@@ -90,8 +90,8 @@ end
 % need not be per subject, but just in case different subjects got different
 % glms somehow, we should figure out the appropriate con file on a subject
 % by subject basis. 
-roi.condsfiles = {}; % Init var for confilenames associated with roi.conds
-% Verify the glms and build up the roi.condsfiles variable.
+roi.roidata = {}; % Init var for confilenames associated with roi.conds
+% Verify the glms and build up the roi.roidata variable.
 spm12w_logger('msg',['[DEBUG] Verifying that glm and contrasts exist for ',...
                     'each subject.'],'level',roi.loglevel)
 for sid = args.sids
@@ -109,9 +109,9 @@ for sid = args.sids
             conidx = find(strcmp({SPM_.SPM.xCon.name},cond{1}));
             if ~isempty(conidx)
                 % Use the index to get the filename of the con file for that sid
-                roi.condsfiles{end+1,1} = sid{1};
-                roi.condsfiles{end,2} = cond{1};
-                roi.condsfiles{end,3} = fullfile(roi.glmdir,sid{1},...
+                roi.roidata{end+1,1} = sid{1};
+                roi.roidata{end,2} = cond{1};
+                roi.roidata{end,3} = fullfile(roi.glmdir,sid{1},...
                                               SPM_.SPM.xCon(conidx).Vcon.fname);
             else
                 spm12w_logger('msg',sprintf(['[EXCEPTION] condition ''%s'' ',...
@@ -124,4 +124,91 @@ for sid = args.sids
     end
 end
 
-%
+% Resort the file order by contrast and init an empty matrix to hold betas
+roi.roidata = sortrows(roi.roidata,[2,1]);
+
+% Iterate through ROIs, pulling data from each contrast and con file.
+for roifields = fields(roi.roi)'
+    roi_spec = roi.roi.(roifields{1});
+    % Check if ROI is a string (i.e., an img mask) or is coordinates
+    if ischar(roi_spec)
+        spm12w_logger('msg',sprintf(['Performing ROI analysis on region ',...
+                      '''%s'' using the mask at:%s'], roifields{1}, roi_spec),...
+                      'level',roi.loglevel)
+        if ~exist(fullfile(roi_spec),'file')
+            if exist(fullfile(roi.roimask, roi_spec),'file')
+                roi_spec = fullfile(roi.roimask, roi_spec);
+            else
+                spm12w_logger('msg',sprintf(['[EXCEPTION] Roi mask ''%s'' ',...
+                      'not found. Did you provide the full path?'],...
+                      roi_spec),'level',roi.loglevel);
+                error('Roi mask %s not found', roi_spec);   
+            end        
+        end          
+        tmpdata = spm12w_readnii('niifiles',roi.roidata(:,3),...
+                           'mask',roi_spec,'vox_avg',1);  
+        roi.roidata = [roi.roidata, {tmpdata.maskdata}'];
+    elseif isnumeric(roi_spec)
+        % Check if roi sphere size is set, if not use default value. 
+        if length(roi_spec) ~= 4
+            roi_spec(4) = roi.roi_size;
+        end
+        spm12w_logger('msg',sprintf(['Performing ROI analysis on region ',...
+                      '''%s'' using a %dmm sphere at %d,%d,%d'], roifields{1}, ...
+                      roi_spec(4), roi_spec(1:3)),'level',roi.loglevel)
+        tmpdata = spm12w_readnii('niifiles',roi.roidata(:,3),...
+                           'sphere',roi_spec,'vox_avg',1); 
+        roi.roidata = [roi.roidata, {tmpdata.spheredata}'];
+    end
+end
+
+% Write roidata to tab delimited text file. 
+roifile = fullfile(roi.roidir,[roi.roi_name,'.txt']);                               
+fid = fopen(roifile,'w'); % Open the file, overwriting prior contents  
+
+% Print the first column headers
+fprintf(fid,'%s\t%s\t%s\t','Subject','Condition','File');  
+
+% Loop through all ROI regions and print their names as column headers
+for roifields = fields(roi.roi)'
+    fprintf(fid,'%s\t',roifields{1}); 
+end
+
+% Loop through each row of roidata and print subject, condition and file
+for roidata_i = 1:size(roi.roidata,1)
+    fprintf(fid,'\n%s\t%s\t%s\t',roi.roidata{roidata_i,1:3});
+    % Now loop through the columns of extracted data
+    for roidata_col = 4:size(roi.roidata,2)
+        fprintf(fid,'%6.3f\t',roi.roidata{roidata_i,roidata_col});
+    end
+end
+
+% Close the file
+fclose(fid);
+spm12w_logger('msg',sprintf('Roi data saved to roi file ''%s'' at: %s',...
+                     [roi.roi_name,'.txt'], roifile),'level',roi.loglevel)
+                 
+% Generate basic ROI statistics
+% Set output file for saving statistics.
+statsfile = fullfile(roi.roidir,[roi.roi_name,'_stats.txt']);   
+diary(statsfile)
+% Check if need to load variable file for ttest2 or correl1 and correl2
+
+% Magic
+
+% Stats complete... Turn off the diary.
+diary off
+
+% Save roi mat file
+matfile = fullfile(roi.roidir,[roi.roi_name,'.mat']);
+save(matfile,'roi');
+
+% Print final words
+msglist{1} = roi.niceline;
+msglist{2} = sprintf('Roi data   : %s', roifile);
+msglist{3} = sprintf('Statistics : %s', statsfile);
+msglist{4} = sprintf('Parameters : %s', matfile);
+
+for msg = msglist
+    spm12w_logger('msg',msg{1},'level',roi.loglevel)
+end    

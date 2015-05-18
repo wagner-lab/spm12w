@@ -88,10 +88,20 @@ args_defaults = struct('niifiles','', 'range','', 'voxels',[], 'sphere','',...
                 'vox_only',1, 'resample',0, 'loglevel', 1);
 args = spm12w_args('nargs',2, 'defaults', args_defaults, 'arguments', varargin);
 
-% If single niifile is given as string, convert to cell array.
-if ischar(args.niifiles)
+% if iscell check dimensions of niifille, if not cell then assume char.
+if iscell(args.niifiles)
+    [r,c] = size(args.niifiles);
+    if r > c  
+        % We want cell array of 1 row many columns, not vice versa.
+        args.niifiles = args.niifiles';
+    end
+elseif ischar(args.niifiles)  % if niifile is not cell, assume str and convert
     args.niifiles = cellstr(args.niifiles);
-end
+else
+    spm12w_logger('msg','[EXCEPTION] niifiles in unknown format...', ...
+                  'level',args.loglevel);
+    error ('Unknown format for niifiles...')
+end  
 
 % If single range entered as matrix, convert to cell array
 if isnumeric(args.range)
