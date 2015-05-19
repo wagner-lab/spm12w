@@ -170,8 +170,8 @@ fid = fopen(roifile,'w'); % Open the file, overwriting prior contents
 fprintf(fid,'%s\t%s\t%s\t','Subject','Condition','File');  
 
 % Loop through all ROI regions and print their names as column headers
-for roifields = fields(roi.roi)'
-    fprintf(fid,'%s\t',roifields{1}); 
+for region = fields(roi.roi)'
+    fprintf(fid,'%s\t',region{1}); 
 end
 
 % Loop through each row of roidata and print subject, condition and file
@@ -189,12 +189,129 @@ spm12w_logger('msg',sprintf('Roi data saved to roi file ''%s'' at: %s',...
                      [roi.roi_name,'.txt'], roifile),'level',roi.loglevel)
                  
 % Generate basic ROI statistics
+spm12w_logger('msg',roi.niceline,'level',roi.loglevel)
+spm12w_logger('msg',sprintf('Computing basic statistics on data in: %s',...
+              [roi.roi_name,'.txt']),'level',roi.loglevel);
+          
 % Set output file for saving statistics.
 statsfile = fullfile(roi.roidir,[roi.roi_name,'_stats.txt']);   
 diary(statsfile)
-% Check if need to load variable file for ttest2 or correl1 and correl2
 
-% Magic
+% Because we allow on the fly comparisons of conditions, we need to generate a
+% list of conditions and interpret any formulas like we do for glm contrasts.
+roiconds = {};
+for stats = fields(roi.stats)'
+    if any(strcmp(roi.stats.(stats{1}),'all_conditions'))
+        roiconds = [roiconds, roi.conds];
+    else
+        roiconds = [roiconds, roi.stats.(stats{1})];    
+    end
+end
+roiconds = sort(unique(roiconds));
+
+% Iterate through these conditions then regions then stat fields
+for conds = roiconds
+    fprintf('===Condition: %s\n', conds{1});
+    for region = fields(roi.roi)
+        fprintf('==Region: %s\n', region{1});
+            % Find which column contains the region data (data starts at col4)
+            regioncol = find(ismember(fields(roi.roi), region{1})) + 3;
+            % Put the data for region/condition into the data variable.
+            % If not a formula, then its simple. 
+            if any(ismember(roi.conds,conds{1}))
+                % Find the rows containing data for the current condition
+                datarows = ismember(roi.roidata(:,2),conds{1});
+                % Assign data for this condition and region to a matrix.
+                data = cell2mat(roi.roidata(datarows,regioncol));
+            else
+                % Recycle trick from spm12w_glm_contrast. 
+                tmpstr = strsplit(conds{1},'vs.'); %Split on 'vs.' 
+                poswt = strtrim(tmpstr{1}); % remove leading/trailing whitespace
+                if length(tmpstr) > 1
+                    negwt = strtrim(tmpstr{2}); %remove leading/trailing whitespace
+                else
+                    negwt = {}; % Set to zero if only positives
+                end
+                % Now split each on wtspace to get members
+                poswt = strsplit(poswt);
+                % Create pos and neg averages
+                posdata = [];           
+                for pos_i = 1:numel(poswt)
+                    % Find the rows containing data for the current condition
+                    datarows = ismember(roi.roidata(:,2),poswt{pos_i});
+                    % Assign data for this condition and region to a matrix.
+                    posdata(:,pos_i) = cell2mat(roi.roidata(datarows,regioncol));
+                end
+                % Create neg average if neg elements exist        
+                if isempty(negwt)
+                    data = mean(posdata,2);
+                else
+                    negwt = strsplit(negwt);
+                    negdata = [];
+                    for neg_i = 1:numel(negwt)
+                        % Find the rows containing data for the current condition
+                        datarows = ismember(roi.roidata(:,2),negwt{neg_i});
+                        % Assign data for this condition and region to a matrix.
+                        negdata(:,neg_i) = cell2mat(roi.roidata(datarows,regioncol));
+                    end
+                data = mean(posdata,2) - mean(negdata,2);      
+                end                  
+            end
+            % Generate data for groups (allow more than 2 groups?)
+            % TODO
+            data_grp1 = ''; %Data for group 1
+            data_grp2 = ''; %Data for group 2
+        for stats = fields(roi.stats)
+            % Make sure stat is a cell array even if single condition
+            stat = cellstr(roi.stats.(stats{1}));
+            % Go through stats and check if all_conditions keyword was used
+            switch(stats{1})
+                case 'descriptives'
+                    if any(strcmp(stat, 'all_conditions')) || any(ismember(stat,conds{1}))
+                        fprintf('Descriptives\n');
+                        fprintf('\tMean:%4.3f',mean(data));
+                        fprintf(' S.D.:%4.3f',std(data));
+                        fprintf(' MIN:%4.3f',min(data));
+                        fprintf(' MAX:%4.3f\n',max(data));
+                    end          
+                case 'ttest1'
+                    if any(strcmp(stat, 'all_conditions')) || any(ismember(stat,conds{1}))
+                        tstats = spm12w_stats('stat','ttest1','y',data);
+                        fprintf('\t==one-sample t-test\n');
+                        fprintf('\tt-test: t(%d)= %4.2f, p=%4.3f %s\n',...
+                                tstats.df,tstats.t,tstats.p,tstats.p_star);
+                    end
+                case 'ttest2'
+                    if any(strcmp(stat, 'all_conditions')) || any(ismember(stat,conds{1}))
+                        tstats = spm12w_stats('stat','ttest2','y',data_grp1,'x',data_grp2);
+                        fprintf('\t==Independent t-test %s vs %s\n',...
+                                grp1_label, grp2_label);
+                        fprintf('\tGroup 1 %s: Mean:%4.3f',grp1_label, mean(data_grp1));
+                        fprintf(' S.D.:%4.3f\n',std(data_grp1));
+                        fprintf('\tGroup 2 %s: Mean:%4.3f',grp2_label, mean(data_grp2));
+                        fprintf(' S.D.:%4.3f\n',std(data_grp2));
+                        fprintf('\tIndependent t-test: t(%d)= %4.3f, p=%4.3f %s\n',...
+                                tstats.df,tstats.t,tstats.p,tstats.p_star);        
+                    end
+                case 'correl1'
+                    if any(strcmp(stat, 'all_conditions')) || any(ismember(stat,conds{1}))
+                        rcorr = spm12w_stats('stat','correl','y',data,'x',datavar);
+                        fprintf('\t==Correlation (Var:%s)\n',datavar_name);
+                        fprintf('\tCorrelation: r=%4.2f, p=%4.3f %s\n',...
+                                rcorr.r, rcorr.p, rcorr.p_star); 
+                    end
+                case 'correl2'
+                    if any(strcmp(stat, 'all_conditions')) || any(ismember(stat,conds{1}))
+                        
+                    end
+                otherwise
+                    spm12w_logger('msg',sprintf(['[EXCEPTION] Unrecognized ',...
+                      'statistics type: %s'],stats{1}),'level',roi.loglevel);
+                    error('Unrecognized statistics type: %s.',stats{1});                
+            end                   
+        end
+    end
+end
 
 % Stats complete... Turn off the diary.
 diary off
