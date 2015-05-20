@@ -108,7 +108,7 @@ if isstruct(results)
     switch logical(true)
         case results.p < 0.001
             results.p_star = '***';
-        case p < 0.01
+        case results.p < 0.01
             results.p_star = '**';                                                       
         case results.p < 0.05
             results.p_star = '*';

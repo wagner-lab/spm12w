@@ -61,11 +61,11 @@ def.glmlog       = sprintf('%s.log', p_.glm_name);  % Default glm logfile name.
 % def.datadir:    The dir where preprocessing output is stored
 % def.onsdir:     The dir where glm onsets are stored
 % def.glmdir:     The dir where glm output will be saved
-% def.glmarch:    The dir where prior glm files will be archived
 % def.rfxdir:     The dir where 2nd level rfx output will be saved
-% def.imgfiles:   The dir where img files are location (e.g., bigmask, etc.)
-% def.roimask:    The dir where image based masks are stored
-% def.roispecs:   The dir where roi spec and variable files can be found
+% def.roidir:     The dir where roi analyses output files will be saved
+% def.imgfiledir: The dir where img files are location (e.g., bigmask, etc.)
+% def.roimaskdir: The dir where image based masks are stored
+% def.roispecdir: The dir where roi spec and variable files can be found
 % def.archtok:    The dir name where prior analyses will be archived
 def.spm12wloc  = fileparts(which('spm12w.m'));
 def.root       = p_.study_dir;
@@ -81,9 +81,9 @@ def.onsdir     = fullfile(def.auxdir, 'onsets', p_.ons_dir);
 def.glmdir     = fullfile(def.anadir, 'glm', p_.glm_name, p_.sid);
 def.rfxdir     = fullfile(def.anadir, 'rfx', p_.rfx_name);
 def.roidir     = fullfile(def.anadir, 'roi', p_.roi_name);
-def.imgfiles   = fullfile(def.spm12wloc,'img_files');
-def.roimask    = fullfile(def.spm12wloc,'roi_masks');
-def.roispecs   = fullfile(def.scriptsdir,'roi');
+def.imgfiledir = fullfile(def.spm12wloc,'img_files');
+def.roimaskdir = fullfile(def.spm12wloc,'roi_masks');
+def.roispecdir = fullfile(def.auxdir,'roicsv');
 def.archtok = 'archive'; 
                     
 % spm12w defaults for preprocessing
@@ -151,7 +151,7 @@ def.resample   = 0;           %Resampling for voxel extraction in spm12w_readnii
                               
 % Brain mask
 % Can use either bigmask in 1x1x1 or 3x3x3
-def.mask = fullfile(def.imgfiles,'bigmask_3x3x3.nii');
+def.mask = fullfile(def.imgfiledir,'bigmask_3x3x3.nii');
 
 % GLM Model Specifications
 def.runsplit    = 0;  % Seperate GLM per run?
