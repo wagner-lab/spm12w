@@ -67,7 +67,8 @@ end
 if isempty(args.sids)
     args.sids = spm12w_getsid(rfx.glmdir);
 elseif numel(args.sids) == 1 && strcmp(args.sids,'allsids')
-    args.sids = cellstr(ls(fullfile(rfx.glmdir,'s*')))';
+    sids = dir(fullfile(rfx.glmdir,'s*'));
+    args.sids = {sids.name};
 end
 
 % Setup directories for RFX analysis. Archive prior spmT file and spm.mat.

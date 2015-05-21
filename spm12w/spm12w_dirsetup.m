@@ -231,14 +231,14 @@ switch args.dirtype
             error('Cannot find prior glm directory at: %s', dirp.glmdir) 
         else
             for fprefix = {'con_0*.nii','spmT_0*.nii','spmF_*.nii','ess_0*.nii'}; 
-                flist = ls(fullfile(dirp.glmdir,fprefix{1}));
+                flist = dir(fullfile(dirp.glmdir,fprefix{1}));
                 if ~isempty(flist)
                     spm12w_logger('msg',sprintf(['[WARNING] Prior contrast files (%s) found. ', ...
                           'Previous contrast files will be deleted...'],fprefix{1}),'level',dirp.loglevel) 
                     for f_i = 1:size(flist,1)
                         spm12w_logger('msg',sprintf('[DEBUG] Removing file: %s', ...
-                                      deblank(flist(f_i,:))),'level',dirp.loglevel)
-                        delete(fullfile(dirp.glmdir,deblank(flist(f_i,:))))
+                                      flist(f_i).name),'level',dirp.loglevel)
+                        delete(fullfile(dirp.glmdir,flist(f_i).name))
                     end
                 end     
             end
@@ -264,15 +264,15 @@ switch args.dirtype
             % Keep spmT files
             %(todo: keep spm_fs for anova once we add
             % anova to supported rfx models)
-            spmtlist = ls(fullfile(rfxdir,'spmT_*.nii'));   
+            spmtlist = dir(fullfile(rfxdir,'spmT_*.nii'));   
             for f_i = 1:size(spmtlist,1)
                 % Create the archive directory if it doesn't exist
                 if ~exist(rfxarch,'dir')
                     mkdir(rfxarch)
                 end
-                infile = fullfile(rfxdir,deblank(spmtlist(f_i,:)));
+                infile = fullfile(rfxdir,spmtlist(f_i).name);
                 outfile = fullfile(rfxarch, ... 
-                          sprintf('%s_%s',timestamp,deblank(spmtlist(f_i,:))));
+                          sprintf('%s_%s',timestamp,spmtlist(f_i).name));
                 spm12w_logger('msg',['[DEBUG] Prior analysis ', ...
                              'spmT file found.'], 'level',dirp.loglevel)
                 spm12w_logger('msg',sprintf('[DEBUG] Moving %s',...

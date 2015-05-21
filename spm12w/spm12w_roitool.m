@@ -77,7 +77,8 @@ end
 if isempty(args.sids)
     args.sids = spm12w_getsid(roi.glmdir);
 elseif numel(args.sids) == 1 && strcmp(args.sids,'allsids')
-    args.sids = cellstr(ls(fullfile(roi.glmdir,'s*')))';
+    sids = dir(fullfile(roi.glmdir,'s*'));
+    args.sids = {sids.name};
 end
 
 % Setup directories for roi analysis. 

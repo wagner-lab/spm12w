@@ -66,7 +66,7 @@ if isempty(args.sids)
     end
     if any(args.tests==1) %For test 1 check in raw
         args.sids = spm12w_getsid(fullfile(pwd,'raw'));
-    elseif sum(ismember(args.tests,[2:5,8,9])) > 0
+    elseif any(ismember(args.tests,[2:5,7,8,9]))
         args.sids = spm12w_getsid;
     end
 end
@@ -132,7 +132,7 @@ for testcase = args.tests
             % Using a combination of spherical and anatomical ROIs
             % mean parameter estimates are extracted from ROIs and submitted 
             % to basic analyses (t-test, correltions, descriptives).
-            spm12w_roitool('roi_file','roi_tutorial.m');
+            spm12w_roitool('roi_file','roi_tutorial.m','sids',args.sids);
         
         case 8 
             % VOI timeseries extraction
