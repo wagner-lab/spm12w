@@ -1,5 +1,5 @@
 function results = spm12w_stats(varargin)
-% spm12w_stats(stat, y, x)
+% spm12w_stats('stat', 'y', 'x')
 %
 % Input
 % -----

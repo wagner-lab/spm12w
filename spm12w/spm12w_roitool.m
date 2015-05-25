@@ -90,14 +90,15 @@ if isempty(args.spec)
     if exist(fullfile(roi.roispecdir,roi.spec_file),'file')
         spm12w_logger('msg',sprintf('Loading roi specs from csv file: %s',...
             roi.spec_file),'level',roi.loglevel)
-        % xlsread works on csv files & handles mixed data better than csvread
-        [~, ~, csvspec] = xlsread(fullfile(roi.roispecdir,roi.spec_file));
+        % read in csv as mixed data cell (can't use xlsread on linux so ...)
+        csvspec = spm12w_readcsv('csvfile',fullfile(roi.roispecdir,roi.spec_file));
+        
     end
     % Parse the csv file
     roistruct = struct();
     for csv_row = 2:size(csvspec,1)
         fieldname = csvspec{csv_row,1};
-        if isnumeric(csvspec{csv_row,2}) && ~isnan(csvspec{csv_row,2})
+        if isnumeric(csvspec{csv_row,2}) && ~isempty(csvspec{csv_row,2})
             spec = [csvspec{csv_row,2:end}];
         else
             % Must be nifti mask string, find column containing string
@@ -246,8 +247,8 @@ spm12w_logger('msg',sprintf('Computing basic statistics on data in: %s',...
 if exist(fullfile(roi.roispecdir,roi.var_file),'file')
     spm12w_logger('msg',sprintf('Loading roi variables from csv file: %s',...
         roi.spec_file),'level',roi.loglevel)
-    % xlsread works on csv files & handles mixed data better than csvread
-    [~, ~, csvvar] = xlsread(fullfile(roi.roispecdir,roi.var_file));
+    % read in csv as mixed data cell
+    csvvar = spm12w_readcsv('csvfile',fullfile(roi.roispecdir,roi.var_file));
     % Remove the first row header to make life easier
     csvhdr = csvvar(1,:);
     csvvar = csvvar(2:end,:);   
