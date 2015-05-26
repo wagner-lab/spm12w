@@ -122,7 +122,7 @@ switch args.dirtype
                         if ~exist(fullfile(dirp.datadir, dirp.archtok),'dir')
                             mkdir(fullfile(dirp.datadir, dirp.archtok))
                         end
-                        infile = fullfile(dirp.datadir,dirp.archtok,flist(i).name);
+                        infile = fullfile(dirp.datadir,flist(i).name);
                         outfile = fullfile(dirp.datadir,dirp.archtok, ... 
                                   sprintf('%s_%s',timestamp,flist(i).name));
                         spm12w_logger('msg',sprintf(['[DEBUG] Prior logfile ', ...
