@@ -11,7 +11,7 @@ function spm12w_prepare(varargin)
 % copying the data into the study's raw directory. 
 %
 % spm12w_prepare should be run from the study's root directory, where it
-% will look for a dbic_to_subid.txt file that specifies the correspondance
+% will look for a subid_list.txt file that specifies the correspondance
 % between DBIC IDs (i.e., the name of the archive of raw data) and subject
 % IDs (i.e., the anonymized name of the subject for the current study). In
 % additions spm12w_prepare expects the raw data to be stored in
@@ -21,7 +21,7 @@ function spm12w_prepare(varargin)
 %
 % spm12w_prepare will prepare every file it finds in the study's arch/nifti
 % or arch/parrec (depending on the requested format) that is also listed
-% in the dbic_to_subid.txt file. If a subject has already been converted
+% in the subid_list.txt file. If a subject has already been converted
 % (i.e., exists in the raw directory) then it will be overwritten. 
 %
 % spm12w_prepare workflow:
@@ -82,7 +82,7 @@ end
 
 % Check that we are in the study's root directory and that files exists
 if ~exist(sidfile, 'file')
-    error(['I can''t seem to find the dbic_to_subid.txt file in the arch '...
+    error(['I can''t seem to find the subid_list.txt file in the arch '...
         'directory. Are you sure it exists and that you are in the study ' ...
         'root directory? (i.e.: %s)'], root)
 end
