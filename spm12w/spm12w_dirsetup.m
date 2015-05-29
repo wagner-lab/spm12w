@@ -4,7 +4,7 @@ function spm12w_dirsetup(varargin)
 % Input
 % -----
 % dirtype : Type of directory to setup (e.g., 'prep_clean', 'prep_setup', 
-%           'glm_clean', 'glm_setup'). (Default='prep_clean').
+%           'glm', 'glm_setup'). (Default='prep_clean').
 %
 % params  : A structure of parameters (e.g., p, glm, etc.). 
 %
@@ -31,28 +31,35 @@ function spm12w_dirsetup(varargin)
 %   'prep_setup' : spm12w_dirsetup copy raw nifti data to the p.datadir for 
 %                  preprocessing, renaming them appropriately.
 %
-%   'glm_clean'  : spm12w_dirsetup will check for a pre-existing directory and 
+%   'glm'        : spm12w_dirsetup will check for a pre-existing directory and 
 %                  will preseve log files by moving them to an archive directory
 %                  with a date and time stamp. All other files and directories
 %                  within the glm analysis directory will be deleted.
 %
-%   'con_clean'  : spm12w_dirsetup will check the pre-existing glm directory and 
+%   'con'        : spm12w_dirsetup will check the pre-existing glm directory and 
 %                  remove all prior con and spmT files (to prevent outdated
 %                  con files from lingering around). 
 %
-%   'rfx_clean'  : spm12w_dirsetup will check the pre-existing rfx directory and 
+%   'rfx'        : spm12w_dirsetup will check the pre-existing rfx directory and 
 %                  remove all prior files associated with the rfx analysis.
-%                  The prior spmT and SPM.mat files will be preserved by 
+%                  Any prior spmT and SPM.mat files will be preserved by 
 %                  moving them to an archive directory with a date and time
 %                  stamp.
+%
+%   'roi'        : spm12w_dirsetup will check the pre-existing roi directory and 
+%                  remove all prior files associated with the roi analysis.
+%                  Any prior roi_name.txt and roi_stats.txt files will be
+%                  preserved by moving them to an archive directory with a 
+%                  date and time stamp.
 %
 % Examples:
 %
 %   >> spm12w_dirsetup('dirtype', 'prep_clean', 'params', p)
-%   >> spm12w_dirsetup('dirtype', 'glm_clean', 'params', glm)
+%   >> spm12w_dirsetup('dirtype', 'glm', 'params', glm)
+%   >> spm12w_dirsetup('dirtype', 'roi', 'params', roi)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: November, 2014 | Updated: April, 2015
+% # Author: Dylan Wagner | Created: November, 2014 | Updated: May, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -99,7 +106,7 @@ switch args.dirtype
             for i = 1:length(flist) 
                 diary off % in case a logger is still open (diary stops rmdir)
                 if flist(i).isdir
-                    if strcmp(flist(i).name,'archive')
+                    if strcmp(flist(i).name,dirp.archtok)
                         spm12w_logger('msg','[DEBUG] Preserving archive directory', ...
                                       'level', dirp.loglevel) % Placeholder
                     else
@@ -112,11 +119,11 @@ switch args.dirtype
                     [~,fname,~] = fileparts(dirp.preplog);
                     keepfiles = {[fname,'.log'],[fname,'.pdf'],[fname,'.mat']};               
                     if ismember(flist(i).name,keepfiles)
-                        if ~exist(dirp.preparch,'dir')
-                            mkdir(dirp.preparch)
+                        if ~exist(fullfile(dirp.datadir, dirp.archtok),'dir')
+                            mkdir(fullfile(dirp.datadir, dirp.archtok))
                         end
                         infile = fullfile(dirp.datadir,flist(i).name);
-                        outfile = fullfile(dirp.preparch, ... 
+                        outfile = fullfile(dirp.datadir,dirp.archtok, ... 
                                   sprintf('%s_%s',timestamp,flist(i).name));
                         spm12w_logger('msg',sprintf(['[DEBUG] Prior logfile ', ...
                                      'found. Moving %s to %s'],infile, outfile), ...
@@ -161,7 +168,7 @@ switch args.dirtype
             end
         end
 
-    case 'glm_clean'
+    case 'glm'
         spm12w_logger('msg',sprintf('Checking glm directory for subject: %s', ...
                       dirp.sid),'level',dirp.loglevel)
         if ~exist(dirp.glmdir,'dir')
@@ -180,7 +187,7 @@ switch args.dirtype
             for i = 1:length(flist) 
                 diary off % in case a logger is still open (diary stops rmdir)
                 if flist(i).isdir
-                    if strcmp(flist(i).name,'archive')
+                    if strcmp(flist(i).name,dirp.archtok)
                         spm12w_logger('msg','[DEBUG] Preserving archive directory', ...
                                       'level', dirp.loglevel) % Placeholder
                     else
@@ -193,11 +200,11 @@ switch args.dirtype
                     [~,fname,~] = fileparts(dirp.glmlog);
                     keepfiles = {[fname,'.log'],[fname,'.pdf'],[fname,'.mat']};               
                     if ismember(flist(i).name,keepfiles)
-                        if ~exist(dirp.glmarch,'dir')
-                            mkdir(dirp.glmarch)
+                        if ~exist(fullfile(dirp.glmdir, dirp.archtok),'dir')
+                            mkdir(fullfile(dirp.glmdir, dirp.archtok))
                         end
                         infile = fullfile(dirp.glmdir,flist(i).name);
-                        outfile = fullfile(dirp.glmarch, ... 
+                        outfile = fullfile(dirp.glmdir, dirp.archtok, ... 
                                   sprintf('%s_%s',timestamp,flist(i).name));
                         spm12w_logger('msg',['[DEBUG] Prior logfile ', ...
                                      'found.'], 'level',dirp.loglevel)
@@ -215,7 +222,7 @@ switch args.dirtype
             end
         end
        
-    case 'con_clean'
+    case 'con'
         spm12w_logger('msg',sprintf('Checking glm directory for subject: %s', ...
                       dirp.sid),'level',dirp.loglevel)
         if ~exist(dirp.glmdir,'dir')
@@ -224,20 +231,20 @@ switch args.dirtype
             error('Cannot find prior glm directory at: %s', dirp.glmdir) 
         else
             for fprefix = {'con_0*.nii','spmT_0*.nii','spmF_*.nii','ess_0*.nii'}; 
-                flist = ls(fullfile(dirp.glmdir,fprefix{1}));
+                flist = dir(fullfile(dirp.glmdir,fprefix{1}));
                 if ~isempty(flist)
                     spm12w_logger('msg',sprintf(['[WARNING] Prior contrast files (%s) found. ', ...
                           'Previous contrast files will be deleted...'],fprefix{1}),'level',dirp.loglevel) 
                     for f_i = 1:size(flist,1)
                         spm12w_logger('msg',sprintf('[DEBUG] Removing file: %s', ...
-                                      deblank(flist(f_i,:))),'level',dirp.loglevel)
-                        delete(fullfile(dirp.glmdir,deblank(flist(f_i,:))))
+                                      flist(f_i).name),'level',dirp.loglevel)
+                        delete(fullfile(dirp.glmdir,flist(f_i).name))
                     end
                 end     
             end
         end
-   case 'rfx_clean'
-    % For rfx dirs, we need to make them on the fly based on dirp.rfx_conds var
+   case 'rfx'
+   % For rfx dirs, we need to make them on the fly based on dirp.rfx_conds var
     for rfxcondir = dirp.rfx_conds
         rfxdir = fullfile(dirp.rfxdir,rfxcondir{1});
         spm12w_logger('msg',sprintf('Checking rfx directory: %s', ...
@@ -252,20 +259,20 @@ switch args.dirtype
             spm12w_logger('msg',sprintf(['[DEBUG] Cleaning prior ',...
                           'rfx directory at: %s'], rfxdir), ...
                           'level',dirp.loglevel)  
-            rfxarch = fullfile(rfxdir,dirp.rfxarchtok); % set the arch dir name
+            rfxarch = fullfile(rfxdir,dirp.archtok); % set the arch dir name
             timestamp = datestr(now, 'dd-mm-yyyy_HH-MM'); %timestamp for renaming
             % Keep spmT files
             %(todo: keep spm_fs for anova once we add
             % anova to supported rfx models)
-            spmtlist = ls(fullfile(rfxdir,'spmT_*.nii'));   
+            spmtlist = dir(fullfile(rfxdir,'spmT_*.nii'));   
             for f_i = 1:size(spmtlist,1)
                 % Create the archive directory if it doesn't exist
                 if ~exist(rfxarch,'dir')
                     mkdir(rfxarch)
                 end
-                infile = fullfile(rfxdir,deblank(spmtlist(f_i,:)));
+                infile = fullfile(rfxdir,spmtlist(f_i).name);
                 outfile = fullfile(rfxarch, ... 
-                          sprintf('%s_%s',timestamp,deblank(spmtlist(f_i,:))));
+                          sprintf('%s_%s',timestamp,spmtlist(f_i).name));
                 spm12w_logger('msg',['[DEBUG] Prior analysis ', ...
                              'spmT file found.'], 'level',dirp.loglevel)
                 spm12w_logger('msg',sprintf('[DEBUG] Moving %s',...
@@ -279,7 +286,7 @@ switch args.dirtype
             flist = flist(3:end); % remove . and ..
             for i = 1:length(flist) 
                 if flist(i).isdir
-                    if strcmp(flist(i).name,'archive')
+                    if strcmp(flist(i).name,dirp.archtok)
                         spm12w_logger('msg','[DEBUG] Preserving archive directory', ...
                                       'level', dirp.loglevel) % Placeholder
                     else
@@ -314,7 +321,21 @@ switch args.dirtype
             end
         end          
     end
-        
+    case 'roi'
+        spm12w_logger('msg',sprintf('Checking roi directory: %s', ...
+                      dirp.roidir),'level',dirp.loglevel)
+        if ~exist(dirp.roidir,'dir')
+            spm12w_logger('msg',sprintf('[DEBUG] Creating directory: %s ',...
+              dirp.roidir),'level',dirp.loglevel)
+            mkdir(dirp.roidir)    
+        else
+            spm12w_logger('msg',['[WARNING] Prior roi directory found. ', ...
+                      'Directory will be cleaned...'],'level',dirp.loglevel)
+            spm12w_logger('msg',sprintf(['[DEBUG] Cleaning prior ',...
+                      'roi directory at: %s'], dirp.roidir), ...
+                      'level',dirp.loglevel)  
+            disp('todo, clean the ROI dir')
+        end
     otherwise
         spm12w_logger('msg',sprintf('[EXCEPTION] Unknown dirtype: %s', ... 
                       args.dirtype),'level',dirp.loglevel)
@@ -322,8 +343,8 @@ switch args.dirtype
         error('Unknown dirtype: %s', args.dirtype)    
 end
 
-% Print completed message (tailor msg if rfx clean).
-if strcmp(args.dirtype,'rfx_clean')
+% Print completed message (tailor msg if rfx clean or roi clean).
+if ismember(args.dirtype,{'rfx','roi'})
     dirmsg = sprintf(['[DEBUG] Finished setting up directories ',...
                  'for dirtype: %s'], args.dirtype);
 else

@@ -6,9 +6,12 @@ function spm12w_slicenoise(varargin)
 % niifiles : A cell array of full paths to nifti files(s) for tSNR
 %            calcualtion.
 %
-% radata  : A cell array of realignment data (i.e., load realignment 
-%           parameters into an array or use p.ra if called from
-%           spm12w_preprocess.m
+% radata   : A cell array of realignment data (i.e., load realignment 
+%            parameters into an array or use p.ra if called from
+%            spm12w_preprocess.m)
+%
+% mask     : Full path to a mask file to constrain slice calcualtions
+%            (usually the default mask contained in p.mask)
 %
 % psname   : Name of .ps file containing figures displaying SNR plots.
 %            Default is preprocess.ps
@@ -23,16 +26,16 @@ function spm12w_slicenoise(varargin)
 %
 % Calculate slice noise on two runs of data
 %   >> spm12w_slicenoise('niifiles', {'./epi_r01.nii', './epi_r02.nii'},
-%                         'radata', p.ra)
+%                        'radata', p.ra, 'mask', p.mask)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: November, 2014 | Updated: December, 2014
+% # Author: Dylan Wagner | Created: November, 2014 | Updated: May, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
-args_defaults = struct('niifiles','','radata','', ...
+args_defaults = struct('niifiles','','radata','','mask','',...
                        'psname','preprocess.ps','loglevel', 1);
-args = spm12w_args('nargs',2, 'defaults', args_defaults, 'arguments', varargin);
+args = spm12w_args('nargs',4, 'defaults', args_defaults, 'arguments', varargin);
 
 % Setup figure (if it exists, clear it, otherwise make it).
 F = spm_figure('FindWin','Graphics');
@@ -56,8 +59,8 @@ if scalf(1) > 1
     spm12w_logger('msg',['[DEBUG] Data will be scaled prior to slice ' ...
               'noise calculation'],'level',args.loglevel)
 end
-% Need bigmask_3x3x3. This assumes data is normalized.
-mask_name = which('bigmask_3x3x3.nii'); 
+% This assumes data is normalized.
+mask_name = args.mask;
 M         = spm_vol(mask_name);
 M.dat     = spm_read_vols(M);
 % work out good neighbours
@@ -83,6 +86,8 @@ for kk=1:nscan
     end
 end
 % Calculate slice noise
+spm12w_logger('msg',sprintf(['[DEBUG] Calculating slice noise for %d ', ...
+              'volumes'], nscan),'level',args.loglevel)
 for kk=1:nscan  % for every input file
     gv(kk) = spm_global(V(kk));
     [dat1,loc] = spm_read_vols(V(kk),1);  % read with zero masking 
@@ -109,17 +114,17 @@ for kk=1:nscan  % for every input file
     noise(:,kk) = nanmean(scan_noise)'; 
 end
 % Make slices figure (now 200% more better!!!)
-th  = 15;  %default was 20 from slices_defaults.m
-wth = 25;  %default was 30 lowering defaults since new coil -DDW Feb/12 
+th  = 5;  %default was 20 from slices_defaults.m
+wth = 15;  %default was 30 lowering defaults since new coil -DDW Feb/12 
 colormap('default');
 subplot(3,1,1)
-imagesc(noise,[0,80])
+imagesc(noise,[0,40])
 ttl = ['Filetype: ',strtok(spm_str_manip(args.niifiles{1},'t'),'_')];
 title(ttl);
 subplot(3,1,2)
-[n,b] = hist(noise(:),[0:80]);
+[n,b] = hist(noise(:),[0:40]);
 bar(b,n);
-set(gca,'xlim',[0,80])
+set(gca,'xlim',[0,40])
 title('distribution of slice noise')
 hold on
 plot([th,th],[0,max(n)],'r-')
@@ -141,4 +146,5 @@ title('rotation (deg)')
 titleax = axes('Position',[0.12 0.75 0.8 0.2],'Parent',F,'Visible','off');
 set(get(titleax,'Title'),'String','Slice Noise Analysis','FontSize',16,'FontWeight','Bold');
 % Print
+spm12w_logger('msg',['[DEBUG] Printing slice noise figure'],'level',args.loglevel)
 print(F, args.psname, '-dpsc2','-painters','-append','-noui')       

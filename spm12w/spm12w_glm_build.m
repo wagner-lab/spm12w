@@ -10,7 +10,7 @@ function glm = spm12w_glm_build(varargin)
 %          parameters file via spm12w_getp. 
 %
 % spm12w_glm_build will gather onset files and output a design matrix. In
-% practice spm12w_glm_build is called by spm12w_glm_design multiple times
+% practice spm12w_glm_build is called by spm12w_glm_compute multiple times
 % to build a complete design matrix (i.e., once for events, once for
 % including outliers and again for including movement parameters). 
 %
@@ -32,7 +32,7 @@ function glm = spm12w_glm_build(varargin)
 %       >>spm12w_glm_build('type','events','params',glm)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: January, 2015
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: May, 2015
 % # TODO: Figure out how to disable spm orthogonalization of regressors as
 % #       spm12 has added the ability to do so. 
 % =======1=========2=========3=========4=========5=========6=========7=========8
@@ -98,19 +98,19 @@ if ismember(args.type, {'events','blocks','regressors'})
         % As we don't know exactly how many parametrics, we do a dir. 
         sidfname = sprintf('%s_%sx*.%s', glm.sid, onsname{1}, glm.ons_ext);
         onsfname = sprintf('%sx*.%s', onsname{1}, glm.ons_ext);
-        parlist = ls(fullfile(glm.onsdir,sidfname));
-        if size(parlist,1) == 0
+        parlist = dir(fullfile(glm.onsdir,sidfname));
+        if isempty(parlist)
             % If parlist based on sid is empty then try looking for onsfname
-            parlist = ls(fullfile(glm.onsdir,onsfname));
+            parlist = dir(fullfile(glm.onsdir,onsfname));
         end
-        if size(parlist,1) ~= 0
+        if ~isempty(parlist)
             for par_i = 1:size(parlist,1)
                 spm12w_logger('msg', sprintf('[DEBUG] Loading %s parametrics for %s (file:%s)', ...
-                          args.type, onsname{1},deblank(parlist(par_i,:))),'level',glm.loglevel)                
-                parname = deblank(parlist(par_i,:));
+                          args.type, onsname{1},parlist(par_i).name),'level',glm.loglevel)                
+                parname = parlist(par_i).name;
                 [~,parname,~] = fileparts(parname(strfind(parname,[onsname{1},'x'])+length(onsname{1})+1:end));
                 onsets.(onsname{1}).P(par_i).name = parname;
-                onsets.(onsname{1}).P(par_i).P = spm_load(fullfile(glm.onsdir, deblank(parlist(par_i,:)))); 
+                onsets.(onsname{1}).P(par_i).P = spm_load(fullfile(glm.onsdir, parlist(par_i).name)); 
             end            
         end
     end

@@ -40,7 +40,7 @@ function spm12w_glm_compute(varargin)
 %                           './scripts/username/glm_tutorial.m')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: January, 2015
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: May, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -51,7 +51,7 @@ args = spm12w_args('nargs',2, 'defaults', args_defaults, 'arguments', varargin);
 glm = spm12w_getp('type','glm', 'sid',args.sid, 'para_file',args.glm_file);
 
 % Setup directories for GLM analysis. 
-spm12w_dirsetup('dirtype','glm_clean','params',glm);
+spm12w_dirsetup('dirtype','glm','params',glm);
 
 % Setup logfile
 spm12w_logger('msg','setup_glm', 'level',glm.loglevel, 'params',glm)
@@ -274,6 +274,12 @@ end
 % Print final words
 for msg = msglist
     spm12w_logger('msg',msg{1},'level',glm.loglevel)
+end
+
+% Close hidden figure (try because in some cases it might already be closed)
+try
+    F = spm_figure('FindWin','Graphics');
+    close(F)
 end
 
 % Save parameter structure to mat file

@@ -27,7 +27,7 @@
 % if using options 2 or 3, that your parameters or glm file contains a typo. 
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2014 | Updated: December, 2014
+% # Author: Dylan Wagner | Created: March, 2014 | Updated: May, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % spm12w naming conventions
@@ -61,12 +61,12 @@ def.glmlog       = sprintf('%s.log', p_.glm_name);  % Default glm logfile name.
 % def.datadir:    The dir where preprocessing output is stored
 % def.onsdir:     The dir where glm onsets are stored
 % def.glmdir:     The dir where glm output will be saved
-% def.glmarch:    The dir where prior glm files will be archived
 % def.rfxdir:     The dir where 2nd level rfx output will be saved
-% def.imgfiles:   The dir where img files are location (e.g., bigmask, etc.)
-% def.roimask:    The dir where image based masks are stored
-% def.roispecs:   The dir where roi spec and variable files can be found
-% def.rfxarchtok: The dir name where prior rfx analysis will be archived
+% def.roidir:     The dir where roi analyses output files will be saved
+% def.imgfiledir: The dir where img files are location (e.g., bigmask, etc.)
+% def.roimaskdir: The dir where image based masks are stored
+% def.roispecdir: The dir where roi spec and variable files can be found
+% def.archtok:    The dir name where prior analyses will be archived
 def.spm12wloc  = fileparts(which('spm12w.m'));
 def.root       = p_.study_dir;
 def.anadir     = fullfile(def.root,'analysis',p_.username);
@@ -77,16 +77,14 @@ def.qadir      = fullfile(def.root, 'qa', p_.prep_name);
 def.rawdir     = fullfile(def.root, 'raw', p_.sid);
 def.scriptsdir = fullfile(def.root, 'scripts', p_.username);
 def.datadir    = fullfile(def.prepdir, p_.sid);
-def.preparch   = fullfile(def.datadir, 'archive');
 def.onsdir     = fullfile(def.auxdir, 'onsets', p_.ons_dir);
 def.glmdir     = fullfile(def.anadir, 'glm', p_.glm_name, p_.sid);
-def.glmarch    = fullfile(def.glmdir, 'archive');
 def.rfxdir     = fullfile(def.anadir, 'rfx', p_.rfx_name);
-def.imgfiles   = fullfile(def.spm12wloc,'img_files');
-def.roimask    = fullfile(def.spm12wloc,'roi_masks');
-def.roispecs   = fullfile(def.scriptsdir,'roi');
-def.rfxarchtok = 'archive'; % we can't specify full path yet as its generated 
-                            % from the glm conditions specified by user
+def.roidir     = fullfile(def.anadir, 'roi', p_.roi_name);
+def.imgfiledir = fullfile(def.spm12wloc,'img_files');
+def.roimaskdir = fullfile(def.spm12wloc,'roi_masks');
+def.roispecdir = fullfile(def.auxdir,'roicsv');
+def.archtok = 'archive'; 
                     
 % spm12w defaults for preprocessing
 % Preprocessing defaults
@@ -149,10 +147,11 @@ def.boundbox   = [-78 -117 -72;...
                               %SPM8 default is [-78 -112 -50; 78 76 85] 
 							  %But that's for 2x2x2.
                               %Ours works better for 3x3x3
+def.resample   = 0;           %Resampling for voxel extraction in spm12w_readnii
                               
 % Brain mask
 % Can use either bigmask in 1x1x1 or 3x3x3
-def.mask = fullfile(def.imgfiles,'bigmask_3x3x3.nii');
+def.mask = fullfile(def.imgfiledir,'bigmask_3x3x3.nii');
 
 % GLM Model Specifications
 def.runsplit    = 0;  % Seperate GLM per run?
@@ -194,3 +193,6 @@ def.hrfbasis  = 8;      %For FIR: Number of bins per window
 %            'anova1'     %not yet implemented
 def.rfx_type  = 'one-sample';
 def.rfx_im    = 1; % Implicit masking for NaN & 0 values at 2nd level.
+
+% ROI Specification
+def.roi_size  = 6; % Default roi size is 6mm

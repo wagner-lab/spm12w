@@ -1,13 +1,13 @@
 function spm12w_tester(varargin)
-% spm12w_tester(tests, subjects)
+% spm12w_tester(tests, sids)
 %
 % Inputs
 % ------
-% tests:        Number (e.g., 3) or vector of numbers (e.g. [1,2,3,4,5]) or the
-%               special word 'all' to perform all tests. (Default: 'all')
+% tests: Number (e.g., 3) or vector of numbers (e.g. [1,2,3,4,5]) or the
+%        special word 'all' to perform all tests. (Default: 'all')
 %
-% subjects:     Cell array of subject ids. If left unspecified, a dialog box 
-%               will appear asking the user to select subjects.
+% sids:  Cell array of subject ids. If left unspecified, a dialog box 
+%        will appear asking the user to select subjects.
 %
 % This testing function is designed to run a new installation of spm12w
 % through most of its core functions to ensure everything is functioning 
@@ -41,7 +41,7 @@ function spm12w_tester(varargin)
 %       >> spm12w_tester
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: February, 2013 | Updated: April, 2015
+% # Author: Dylan Wagner | Created: February, 2013 | Updated: May, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -57,13 +57,16 @@ end
 % empty otherwise there are no sids to select for other tests.
 if isempty(args.sids) 
     if any(args.tests==0)
+        % Prepare 
+        % Extract, copy and rename files according to spm12w convenctions.
+        % Copied data will be in root/raw directory.
         spm12w_logger('msg',sprintf(['Data is not prepared... Preparing ', ...
-              'subject selection']))
+              'subject selection']))    
         spm12w_prepare
     end
     if any(args.tests==1) %For test 1 check in raw
         args.sids = spm12w_getsid(fullfile(pwd,'raw'));
-    elseif sum(ismember(args.tests,[2:5,8,9])) > 0
+    elseif any(ismember(args.tests,[2:5,7,8,9]))
         args.sids = spm12w_getsid;
     end
 end
@@ -74,12 +77,6 @@ spm12w_logger('msg',sprintf(['Beginning tutorial dataset tests on %d ', ...
 
 for testcase = args.tests
     switch testcase     
-        case 0 
-            % Prepare 
-            % Extract, copy and rename files according to spm12w convenctions.
-            % Copied data will be in root/raw directory.
-            spm12w_prepare
-            
         case 1 
             % Preprocessing
             % We only need to preprocess functional datasets once for GLM &
@@ -135,7 +132,7 @@ for testcase = args.tests
             % Using a combination of spherical and anatomical ROIs
             % mean parameter estimates are extracted from ROIs and submitted 
             % to basic analyses (t-test, correltions, descriptives).
-            spm12w_roitool('roi_file','roi_tutorial.m');
+            spm12w_roitool('roi_file','roi_tutorial.m','sids',args.sids);
         
         case 8 
             % VOI timeseries extraction
@@ -149,6 +146,8 @@ for testcase = args.tests
             % Reset the universe
             % Delete dirs and reset the tutorial dataset to a virgin state
             fprintf('Reseting example data back to original state...\n');
+            % Turn off diary as it will prevent dir removal if it was left on
+            diary off
             deldirs = {'qa','analysis','aux/onsets/ppi','notes','prep','raw'};
             for deldir = deldirs
                 if exist(fullfile(pwd,deldir{1}),'dir')

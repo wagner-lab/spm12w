@@ -41,7 +41,7 @@ function spm12w_glm_rfx(varargin)
 %                        'rfx_dir', 'rfx_tutorial')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: April, 2015
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: May, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -56,17 +56,23 @@ if isempty(args.rfx_dir)
     args.rfx_dir = rfx.rfxdir;
 end
 
+% Check for cell in case user provided allsids as string.
+if ~iscell(args.sids) && ~isempty(args.sids)
+    args.sids = cellstr(args.sids);
+end
+
 % If sids argument was not provided, open dialog window to get sids.
 % If sids argument contained the keyword 'allsids', then get all sids.
 % Since we should only do rfx on computed glms, let's look in rfx.glmdir.
 if isempty(args.sids)
     args.sids = spm12w_getsid(rfx.glmdir);
 elseif numel(args.sids) == 1 && strcmp(args.sids,'allsids')
-    args.sids = cellstr(ls(fullfile(rfx.glmdir,'s*')))';
+    sids = dir(fullfile(rfx.glmdir,'s*'));
+    args.sids = {sids.name};
 end
 
 % Setup directories for RFX analysis. Archive prior spmT file and spm.mat.
-spm12w_dirsetup('dirtype','rfx_clean','params',rfx);
+spm12w_dirsetup('dirtype','rfx','params',rfx);
 
 % Perform rfx analysis on the specified conditions
 for rfxcondir = rfx.rfx_conds

@@ -1,5 +1,5 @@
 function results = spm12w_stats(varargin)
-% spm12w_stats(stat, y, x)
+% spm12w_stats('stat', 'y', 'x')
 %
 % Input
 % -----
@@ -23,6 +23,7 @@ function results = spm12w_stats(varargin)
 % 'zscore' : z-score (i.e., y-mean(y) ./std(ya))
 % 'l1'     : l1 Regression (i.e., Least Absolute Deviation)
 % 'mad_med': Median Absolute Deviation (MAD)
+% 'ttest1' : One-sample t-ttest against zero.
 %
 % Examples:
 %
@@ -91,4 +92,27 @@ switch args.stat
         results = B;
     case 'mad_med'
         results = median(abs(args.y-median(args.y)));
+    case 'ttest1'    
+        [~,p,ci,stats]=ttest(args.y);
+        results = struct('t',stats.tstat,'p',p,'ci',ci,'df',stats.df); 
+    case 'ttest2'    
+        [~,p,ci,stats]=ttest2(args.y, args.x);
+        results = struct('t',stats.tstat,'p',p,'ci',ci,'df',stats.df);    
+    case 'correl'
+        [rcorr,p] = corrcoef(args.y, args.x);     
+        results = struct('r',rcorr(1,2),'p',p(1,2));
+end
+
+% Create significance stars for statistics (ttest1, ttest2, correl)
+if isstruct(results)
+    switch logical(true)
+        case results.p < 0.001
+            results.p_star = '***';
+        case results.p < 0.01
+            results.p_star = '**';                                                       
+        case results.p < 0.05
+            results.p_star = '*';
+        otherwise
+            results.p_star = '';
+    end
 end
