@@ -23,11 +23,11 @@ spm12w_path = 'C:\Users\ddw\Documents\GitHub\spm12w\spm12w';
 
 % Optional tools paths (edit these, add additional tools to the tools var)
 tools_path   = 'C:\Users\ddw\Dropbox\Matlab\spm12\tools\';
-tools{1} = 'motionfingerprint_1.5.2';
-tools{2} = 'PhysIO_r534';
-tools{3} = 'mni2tal';
-tools{4} = 'r2agui_2.7';
-tools{5} = 'xjview_8.12';
+tools{1} = 'motionfingerprint_1.5.2'; % http://www.medizin.uni-tuebingen.de/kinder/en/research/neuroimaging/software/
+tools{2} = 'PhysIO_r534'; % http://www.translationalneuromodeling.org/tnu-checkphysretroicor-toolbox/
+tools{3} = 'mni2tal'; % http://imaging.mrc-cbu.cam.ac.uk/downloads/MNI2tal/
+tools{4} = 'r2agui_2.7'; % http://sourceforge.net/projects/r2agui/
+tools{5} = 'xjview_8.12'; % http://www.alivelearn.net/xjview8/download/
 
 % Add spm paths
 addpath(spm12_path, spm12w_path)
