@@ -9,6 +9,7 @@ p.username = 'ddw';
 % Paths and names
 p.study_dir = 'C:\Users\ddw\Documents\MATLAB\tutorial_data';
 p.prep_name = 'standard_preprocessing';
+p.rfx_name  = 'standard_preprocessing';
 
 % Preprocessing Routines - 1=yes 0=no
 p.unwarp        = 1; % Unwarping (correct field inhomogeneties)      
