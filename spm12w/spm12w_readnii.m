@@ -79,7 +79,7 @@ function niidata = spm12w_readnii(varargin)
 %                              'resample', 1}
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: November, 2014 | Updated: May, 2015
+% # Author: Dylan Wagner | Created: November, 2014 | Updated: June, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -166,8 +166,10 @@ for hdr = hdrs
                 case 'sphere'
                     xY = struct('def','sphere','xyz',roi(1:3)',...
                                 'spec',roi(4));
-                    % Get voxels that correspond to that sphere in img space 
-                    [~, roi, ~] = spm_ROI(xY, hdr{1});
+                    % Get voxels that correspond to that sphere in img space,
+                    % need to take first index in case of 4D file. Otherwise 
+                    % spm_ROI will give a structure error.
+                    [~, roi, ~] = spm_ROI(xY, hdr{1}(1)); 
                     % Inform user of sphere details
                     spm12w_logger('msg',sprintf(['[DEBUG] Extracting voxel ',...
                                   'data for a sphere (%dmm diameter) ',...
@@ -176,8 +178,10 @@ for hdr = hdrs
                     
                 case 'mask'
                     xY = struct('def','mask','spec',roi);
-                    % Get voxels from sphere in img space of niifile
-                    [~, roi, ~] = spm_ROI(xY, hdr{1});
+                    % Get voxels that correspond to that sphere in img space,
+                    % need to take first index in case of 4D file. Otherwise 
+                    % spm_ROI will give a structure error.
+                    [~, roi, ~] = spm_ROI(xY, hdr{1}(1));
                     % Inform user of sphere details
                     spm12w_logger('msg',sprintf(['[DEBUG] Extracting voxel ',...
                             'data for nask (%s) containing %d voxels.'], ...
