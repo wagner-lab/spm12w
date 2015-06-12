@@ -1,5 +1,5 @@
 #!/bin/sh
 # Simple command to call matlab on hydra with appropriate settings
 # Plus fix to get terminal back after matlab exit.
-/usr/bin/matlab -nosplash -nodesktop -r spm12path
+matlab -nosplash -nodesktop -softwareopengl -r spm12path
 stty echo
