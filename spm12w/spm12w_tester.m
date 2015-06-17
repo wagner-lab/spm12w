@@ -41,7 +41,7 @@ function spm12w_tester(varargin)
 %       >> spm12w_tester
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: February, 2013 | Updated: May, 2015
+% # Author: Dylan Wagner | Created: February, 2013 | Updated: June, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -55,16 +55,19 @@ end
 
 % If tests contains test 0 (prepare the data) do that first if sids is
 % empty otherwise there are no sids to select for other tests.
-if isempty(args.sids) 
-    if any(args.tests==0)
-        % Prepare 
-        % Extract, copy and rename files according to spm12w convenctions.
-        % Copied data will be in root/raw directory.
-        spm12w_logger('msg',sprintf(['Data is not prepared... Preparing ', ...
-              'subject selection']))    
-        spm12w_prepare
-    end
-    if any(args.tests==1) %For test 1 check in raw
+if any(args.tests==0)
+    % Prepare 
+    % Extract, copy and rename files according to spm12w convenctions.
+    % Copied data will be in root/raw directory.
+    spm12w_logger('msg',sprintf(['Data is not prepared... Preparing ', ...
+          'subject selection']))    
+    spm12w_prepare
+end
+
+% If sids is empty and user is requesting preprocessing, check in raw instead of
+% prep. 
+if isempty(args.sids)     
+    if any(ismember(args.tests, [1,2,3])) %For test 1:3 check in raw
         args.sids = spm12w_getsid(fullfile(pwd,'raw'));
     elseif any(ismember(args.tests,[2:5,7,8,9]))
         args.sids = spm12w_getsid;
