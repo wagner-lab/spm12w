@@ -27,7 +27,7 @@
 % if using options 2 or 3, that your parameters or glm file contains a typo. 
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2014 | Updated: May, 2015
+% # Author: Dylan Wagner | Created: March, 2014 | Updated: June, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % spm12w naming conventions
@@ -85,7 +85,10 @@ def.imgfiledir = fullfile(def.spm12wloc,'img_files');
 def.roimaskdir = fullfile(def.spm12wloc,'roi_masks');
 def.roispecdir = fullfile(def.auxdir,'roicsv');
 def.archtok = 'archive'; 
-                    
+
+% Utility function defaults
+def.resample = 0; %Resampling for voxel extraction in spm12w_readnii
+                   
 % spm12w defaults for preprocessing
 % Preprocessing defaults
 def.trimvols = 0;           % Trim vols off front & back of session (default=0)
@@ -110,25 +113,23 @@ def.sformula   = 'philips'; % Slice order formula ('philips' or 'regular')
 def.refslice   = 1;         % Reference slice for slice timing
 
 % Realign defaults
-def.realign_rtm = 1;      % Realign to 1st only (0) or 2pass(1st then sess mean) (1)
-def.realign_quality = 1;  % Quality versus speed trade-off. SPM12 default 0.9
+def.realign_rtm = 1;     % Realign to 1st only (0) or 2pass(1st then sess mean) (1)
+def.realign_quality = 1; % Quality versus speed trade-off. SPM12 default 0.9
 
-% Cleanup defaults
-def.cleanup    = 1;  % 0 = keep all files (useful for debugging)
-                     % 1 = delete all but the last stage of preprocessing (usually 's')
-                     % 2 = delete all but the last 2 stages of preprocessing (usually 'sw')
-                     % 3 = delete all but the last 2 stages of prerocessing and the raw epi
-def.matkill    = 1;  % Delete intermediate mat files during cleanup
-def.cleanupzip = 1;  % gzip final datasets (0 = no). 
+% Normalization defaults
+def.coreg2epi = 1;       % Coregister anatomy to mean epi image
+def.ebiasreg   = 0.0001; % Intensity bias regularisation
+def.ebiasfwhm  = 60;     % bias fwhm
+def.etpm       = fullfile(spm('dir'),'tpm/TPM.nii'); % tissue prob maps
+def.esamp      = 3;       % Sampling distance tradoff (smaller uses more data)
 
-% Dartel defaults
-def.biasreg       = 0.0001;   % Intensity bias regularisation
-							  % (0 | 0.00001 | *0.0001 | 0.001 | 0.01 | 0.1 | 1 | 10) 
-def.mrf           = 2;        % Segmentation cleanup via MRF (0 | 1 | *2 | 3 | 4)
-def.warpreg       = 4;        % Warp regularisation (spm default:4|can use 0.4 for T1)                        
-def.sampling      = 3;        % Sampling distance (1|2|*3) < 3mm will slow computation 
-def.tissues       = 2;        % Tissue classes for template (1:GM|*2:GM+WM|3:GM+WM+CSF)
-def.dartelsmooth  = 6;        % Smooting kernel for DARTEL to MNI (GM,WM,EPI only)
+
+%spm8w leftovers, might need them
+%def.mrf           = 2;        % Segmentation cleanup via MRF (0 | 1 | *2 | 3 | 4)
+%def.warpreg       = 4;        % Warp regularisation (spm default:4|can use 0.4 for T1)                        
+%def.sampling      = 3;        % Sampling distance (1|2|*3) < 3mm will slow computation 
+%def.tissues       = 2;        % Tissue classes for template (1:GM|*2:GM+WM|3:GM+WM+CSF)
+%def.dartelsmooth  = 6;        % Smooting kernel for DARTEL to MNI (GM,WM,EPI only)
 
 % Normalization and write parameters
 % Interpolation set to 7 bsplines gives a less blury normalized EPI.
@@ -141,14 +142,22 @@ def.wrap_w     = [0 0 0];     %SPM12/8 default [0 0 0] | spm2w was [0 1 0]
 def.interp_r   = 7;           %SPM12/8 default 4       | spm2w was 7
 def.interp_w   = 7;           %SPM12/8 default 4       | spm2w was 7
 def.interp_c   = 7;           %SPM12/8 default 4       | spm2w was 4
-def.voxsize    = [3 3 3];     %SPM12/8 default [2x2x2] | Don't resample
+def.evoxsize   = [3 3 3];     %SPM12/8 default [2x2x2] | Don't resample
+def.avoxsize   = [1 1 1];     %SPM12/8 default [2x2x2] | Don't resample
 def.boundbox   = [-78 -117 -72;...
                  78 76 86];   %SPM12 default is [-78 -112 -70; 78 76 85]
                               %SPM8 default is [-78 -112 -50; 78 76 85] 
 							  %But that's for 2x2x2.
                               %Ours works better for 3x3x3
-def.resample   = 0;           %Resampling for voxel extraction in spm12w_readnii
                               
+% Cleanup defaults
+def.cleanup    = 1;  % 0 = keep all files (useful for debugging)
+                     % 1 = delete all but the last stage of preprocessing (usually 's')
+                     % 2 = delete all but the last 2 stages of preprocessing (usually 'sw')
+                     % 3 = delete all but the last 2 stages of prerocessing and the raw epi
+def.matkill    = 1;  % Delete intermediate mat files during cleanup
+def.cleanupzip = 1;  % gzip final datasets (0 = no). 
+
 % Brain mask
 % Can use either bigmask in 1x1x1 or 3x3x3
 def.mask = fullfile(def.imgfiledir,'bigmask_3x3x3.nii');

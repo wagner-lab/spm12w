@@ -17,8 +17,8 @@ function spm12w_tester(varargin)
 %
 % 0  = Prepare the data (i.e., extract archived data and copy & rename to raw)
 % 1  = Preprocess the data (normalize to epi template)
-% 2  = Preprocess and segment the data (create GM/WM/CSF maps) 
-% 3  = Dartel normalization
+% 2  = Preprocess the data (spm12 segmentation based normalization)
+% 3  = Preprocess the data (spm12 dartel normalization)
 % 4  = 1st level glm build and compute.
 % 5  = 1st level contrasts of task effects
 % 6  = 2nd level random effects analysis

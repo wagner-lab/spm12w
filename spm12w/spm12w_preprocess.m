@@ -36,11 +36,7 @@ function spm12w_preprocess(varargin)
 %                           'para_file','./scripts/username/p_tutorial.m')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: November, 2014
-%
-% #TODO: double check bounding boxes.
-% #TODO: verifiy despike is working as intended.
-% #TODO: optimize despike for speed.
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: June, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -126,7 +122,7 @@ end
 
 % Step: Shuffle check 
 %       Based on shufflecheck.m by Petr Jananta
-if(p.shuffle)
+if p.shuffle
     spm12w_logger('msg',p.niceline, 'level',p.loglevel)
     spm12w_logger('msg',sprintf('Shuffle check on subject: %s', p.sid), ...
                   'level',p.loglevel)
@@ -166,7 +162,7 @@ end
 %                   -c2 is the upper range of the allowed deviation from the curve:\n"
 %                   s=[c1..infinity) is mapped to s'=[c1..c2)   [default c2=4]
 
-if(p.despike)
+if p.despike
     for ses = 1:p.nses
         spm12w_logger('msg',p.niceline, 'level',p.loglevel)
         spm12w_logger('msg',sprintf('Despike on subject: %s', p.sid),...
@@ -183,7 +179,7 @@ if(p.despike)
 end
 
 % Step: Slice Time Correction
-if(p.slicetime)
+if p.slicetime
     spm12w_logger('msg',p.niceline, 'level',p.loglevel)
     spm12w_logger('msg',sprintf('Slice time correction on subject: %s', p.sid),...
                  'level',p.loglevel)    
@@ -206,7 +202,7 @@ if(p.slicetime)
 end
 
 % Step: Realign epi images
-if(p.realign)
+if p.realign
     spm12w_logger('msg',p.niceline, 'level',p.loglevel)
     spm12w_logger('msg',sprintf('Realignment on subject: %s', p.sid),...
                  'level',p.loglevel)  
@@ -229,10 +225,10 @@ if(p.realign)
     % running cleanup prior to Dartel as it could harm the realignment if
     % mat files are missing for Dartel (maybe don't delete mat files?). 
     % Create mean image if no unwarping is selected (otherwise unwarp does it). 
-    if(~p.unwarp) && (p.normalize)  
+    if ~p.unwarp && ~strcmp(p.normalize,'none')
         flags = struct('which',[0 1]); %Sets to no reslice (0) output mean (1)
         spm_reslice(epifiles,flags);
-    elseif (~p.unwarp) && (~p.normalize)
+    elseif ~p.unwarp && strcmp(p.normalize,'none')
         flags = struct('which',[1 1]); 
         spm12w_logger('msg',sprintf(['Writing out realignment images for '...
                       'subject: %s'], p.sid), 'level',p.loglevel)  
@@ -280,13 +276,13 @@ if(p.realign)
         print(F, 'preprocess.ps', '-dpsc2','-painters','-append','-noui')
     end
     % Set bold token to rbold if realigned images were written
-    if (~p.unwarp) && (~p.normalize)
+    if ~p.unwarp && strcmp(p.normalize,'none')
         p.fmri = ['r',p.fmri];
     end 
 end
 
 % Step: Unwarp
-if(p.unwarp)
+if p.unwarp
     spm12w_logger('msg',p.niceline, 'level',p.loglevel)
     spm12w_logger('msg',sprintf('Unwarping subject: %s', p.sid),...
                  'level',p.loglevel)  
@@ -364,56 +360,128 @@ if isfield(p,'gms1k') && p.gms1k == 1 || isfield(p,'gms1k') && p.gms1k == 2
 end
 
 % Normalise EPI images
-if(p.normalize)
+if ~strcmp(p.normalize, 'none')
     spm12w_logger('msg',p.niceline, 'level',p.loglevel)
-    spm12w_logger('msg',sprintf('Normalizing (EPI to EPI) subject: %s', ...
-                  p.sid),'level',p.loglevel) 
-    % Load last preprocessing stage
+    spm12w_logger('msg',sprintf('Normalizing (type: %s), subject: %s', ...
+                  p.normalize, p.sid),'level',p.loglevel)     
+    % Load fileanmes for last preprocessing stage
     epifiles = cell(1,p.nses);
     for ses = 1:p.nses
         epifile = sprintf('%s_r%02d.nii',p.fmri,ses);
         epifiles{ses} = fullfile(p.datadir,epifile);
     end 
-    V = spm_vol(epifiles);
-    V = cat(1,V{:});
-    % Memory map the mean image 
-    meanf   = fullfile(p.datadir, sprintf('mean%s_r01.nii', p.fmri));
-    Vm      = spm_vol(meanf);
-    % Normalization
-    matname  = [spm_str_manip(Vm.fname,'sd') '_sn.mat'];
-    VG = fullfile(spm('Dir'),'toolbox','OldNorm','EPI.nii');
-    spm12w_logger('msg','[DEBUG] Determining normalization parameters', ... 
-                  'level',p.loglevel)
-    % EPI to EPI normalization is depreciated in spm12, so adjust path to add it
-    oldnorm = fullfile(spm('Dir'),'toolbox','OldNorm');
-    addpath(oldnorm)
-    % get normalization parameters using spm's defaults (I see no reason to
-    % divert from the old normalise spm defaults). 
-    params   = spm_normalise(VG,Vm,matname,'','', ...
-               spm_get_defaults('old.normalise.estimate')); 
-    % delete spm's ps file and print append to our own ps file
-    delete(sprintf('spm_%s.ps', datestr(now,'yyyymmmdd')))
-    print(F, 'preprocess.ps', '-dpsc2','-painters','-append','-noui')       
-    % Set normalization defaults, then normalize mean and epi files 
-    defaults.normalise.write.vox    = p.voxsize;
-    defaults.normalise.write.bb     = p.boundbox;
-    defaults.normalise.write.interp = p.interp_w;
-    defaults.normalise.write.wrap   = p.wrap_w;
-    spm12w_logger('msg','[DEBUG] Writing out normalized images', ... 
-                  'level',p.loglevel)
-    msk      = spm_write_sn(V,params,defaults.normalise.write,'mask');
-    spm_write_sn(Vm,params,defaults.normalise.write,msk);	% write nmean
-    % Write normalised epi images
-    spm_write_sn(V,params,defaults.normalise.write,msk);
-    % Adjust path back to what it was
-    rmpath(oldnorm)    
-    spm12w_logger('msg','Normalizing (EPI to EPI) complete...',...
-                  'level',p.loglevel)
-    p.fmri = ['w',p.fmri]; 
+   
+    switch(p.normalize)
+        case 'epi'
+            % Load last preprocessed stage
+            V = spm_vol(epifiles);
+            V = cat(1,V{:});
+            % Memory map the mean image 
+            meanf   = fullfile(p.datadir, sprintf('mean%s_r01.nii', p.fmri));
+            Vm      = spm_vol(meanf);
+            % Normalization
+            matname  = [spm_str_manip(Vm.fname,'sd') '_sn.mat'];
+            VG = fullfile(spm('Dir'),'toolbox','OldNorm','EPI.nii');
+            spm12w_logger('msg','[DEBUG] Determining normalization parameters', ... 
+                          'level',p.loglevel)
+            % EPI to EPI normalization is depreciated in spm12, so adjust path to add it
+            oldnorm = fullfile(spm('Dir'),'toolbox','OldNorm');
+            addpath(oldnorm)
+            % get normalization parameters using spm's defaults (I see no reason to
+            % divert from the old normalise spm defaults). 
+            params   = spm_normalise(VG,Vm,matname,'','', ...
+                       spm_get_defaults('old.normalise.estimate')); 
+            % delete spm's ps file and print append to our own ps file
+            delete(sprintf('spm_%s.ps', datestr(now,'yyyymmmdd')))
+            print(F, 'preprocess.ps', '-dpsc2','-painters','-append','-noui')       
+            % Set normalization defaults, then normalize mean and epi files 
+            defaults.normalise.write.vox    = p.evoxsize;
+            defaults.normalise.write.bb     = p.boundbox;
+            defaults.normalise.write.interp = p.interp_w;
+            defaults.normalise.write.wrap   = p.wrap_w;
+            spm12w_logger('msg','[DEBUG] Writing out normalized images', ... 
+                          'level',p.loglevel)
+            msk      = spm_write_sn(V,params,defaults.normalise.write,'mask');
+            spm_write_sn(Vm,params,defaults.normalise.write,msk);	% write nmean
+            % Write normalised epi images
+            spm_write_sn(V,params,defaults.normalise.write,msk);
+            % Adjust path back to what it was
+            rmpath(oldnorm)    
+
+        case 'spm12'
+            if p.coreg2epi % you would be a fool not to, but check anyway.
+                spm12w_logger('msg','Coregistering anatomy to epi data...', ... 
+                              'level',p.loglevel)                
+                % copy the anatomy
+                copyfile('anat.nii', 'canat.nii');
+                % Setup coregistration
+                meanf = fullfile(p.datadir, sprintf('mean%s_r01.nii', p.fmri));
+                target = spm_vol(meanf);
+                source = spm_vol('canat.nii');
+                coreg_flags = spm_get_defaults('coreg.estimate');            
+                coreg_x = spm_coreg(target,source,coreg_flags);              
+                % Write coregistration transform to sform field in header
+                M   = spm_matrix(coreg_x);         %convert coreg trans to matrix
+                MMS = spm_get_space(source.fname); %Get current image space
+                spm_get_space(source.fname, M\MMS);%Set transform in header.
+                anat = 'canat.nii';
+                spm12w_logger('msg',['Coregisteration transformation saved',...
+                              'header of file: canat.nii'],'level',p.loglevel) 
+                % delete spm's ps file and print append to our own ps file
+                delete(sprintf('spm_%s.ps', datestr(now,'yyyymmmdd')))
+                print(F, 'preprocess.ps', '-dpsc2','-painters','-append','-noui')   
+            else
+                anat = 'anat.nii';
+            end
+            % Estimate normalization deformations based on structural anat
+            spm12w_logger('msg',sprintf(['Estimating normalization ',...
+                          'deformations based on file:%s'], anat), ... 
+                          'level',p.loglevel) 
+            job.subj.vol = {sprintf('%s,1',anat)};
+            job.eoptions.biasreg = p.ebiasreg;
+            job.eoptions.biasfwhm = p.ebiasfwhm;
+            job.eoptions.tpm = {p.etpm};
+            job.eoptions.affreg = 'mni';
+            job.eoptions.reg = [0 0.001 0.5 0.05 0.2];
+            job.eoptions.fwhm = 0;
+            job.eoptions.samp = p.esamp;
+            def_fname = spm_run_norm(job);
+            % Apply deformations to anat at avoxsize
+            spm12w_logger('msg',sprintf(['Applying normalization ',...
+                  'deformations to anatomy file:%s'], anat), ... 
+                  'level',p.loglevel)  
+            job.subj.def = def_fname.def; % the estimated deformation name
+            job.subj.resample = {sprintf('%s,1',anat)}; % file to normalize
+            job.woptions.bb = [-78 -112 -70
+                                78 76 85];
+            job.woptions.vox = p.avoxsize;    % voxelsize for anatomy
+            job.woptions.interp = p.interp_w; % we love those big splines
+            spm_run_norm(job);
+            % Apply deformations to epi data at avoxsize
+            spm12w_logger('msg',['Applying normalization deformations to ',...
+                  'epi files'],'level',p.loglevel)
+            job.subj.def = def_fname.def;  
+            job.subj.resample = epifiles'; %need to transpose
+            job.woptions.bb = p.boundbox;
+            job.woptions.vox = p.evoxsize;
+            job.woptions.interp = p.interp_w;
+            spm_run_norm(job);
+            
+        case 'dartel'
+            % do nothing for now.
+            
+    end
+    spm12w_logger('msg',sprintf('Normalizing (type: %s) complete...',...
+                  p.normalize),'level',p.loglevel)
+    p.fmri = ['w',p.fmri];       
 end
 
+
+
+
+
 % Step: Smoothing
-if(p.smoothing)
+if p.smoothing
     spm12w_logger('msg',p.niceline, 'level',p.loglevel)
     spm12w_logger('msg',sprintf('Smoothing (%dmm FWHM) subject: %s', ...
                   p.smoothing, p.sid),'level',p.loglevel) 
@@ -428,7 +496,7 @@ if(p.smoothing)
 end
 
 % Step: SNR 
-if(p.snr)
+if p.snr
     spm12w_logger('msg',p.niceline, 'level',p.loglevel)
     spm12w_logger('msg',sprintf('Calcualating tSNR on subject: %s', ...
                   p.smoothing, p.sid),'level',p.loglevel) 
@@ -445,7 +513,7 @@ end
 
 % Step: Slice Noise Analysis 
 %       Borrowed from slices_analyse by Antonia Hamilton
-if(p.slices)
+if p.slices
     spm12w_logger('msg',p.niceline, 'level',p.loglevel)
     spm12w_logger('msg',sprintf(['Calcualating slice noise check on ' ...
                   'subject: %s'], p.sid),'level',p.loglevel) 
