@@ -359,7 +359,7 @@ if isfield(p,'gms1k') && p.gms1k == 1 || isfield(p,'gms1k') && p.gms1k == 2
     p.fmri = ['m',p.fmri]; 
 end
 
-% Normalise EPI images
+%Step: Normalise EPI images
 if ~strcmp(p.normalize, 'none')
     spm12w_logger('msg',p.niceline, 'level',p.loglevel)
     spm12w_logger('msg',sprintf('Normalizing (type: %s), subject: %s', ...
@@ -425,14 +425,17 @@ if ~strcmp(p.normalize, 'none')
                 MMS = spm_get_space(source.fname); %Get current image space
                 spm_get_space(source.fname, M\MMS);%Set transform in header.
                 anat = 'canat.nii';
-                spm12w_logger('msg',['Coregisteration transformation saved',...
-                              'header of file: canat.nii'],'level',p.loglevel) 
+                spm12w_logger('msg',['Coregisteration transformation saved ',...
+                              'to header of file:canat.nii'],'level',p.loglevel) 
                 % delete spm's ps file and print append to our own ps file
                 delete(sprintf('spm_%s.ps', datestr(now,'yyyymmmdd')))
                 print(F, 'preprocess.ps', '-dpsc2','-painters','-append','-noui')   
             else
                 anat = 'anat.nii';
             end
+            % Adjust paths to include spm12/config dir
+            addconfig = fullfile(fileparts(which('spm.m')),'config');
+            addpath(addconfig)
             % Estimate normalization deformations based on structural anat
             spm12w_logger('msg',sprintf(['Estimating normalization ',...
                           'deformations based on file:%s'], anat), ... 
@@ -466,6 +469,8 @@ if ~strcmp(p.normalize, 'none')
             job.woptions.vox = p.evoxsize;
             job.woptions.interp = p.interp_w;
             spm_run_norm(job);
+            % rm spm12/config from path
+            rmpath(addconfig)
             
         case 'dartel'
             % do nothing for now.
@@ -475,10 +480,6 @@ if ~strcmp(p.normalize, 'none')
                   p.normalize),'level',p.loglevel)
     p.fmri = ['w',p.fmri];       
 end
-
-
-
-
 
 % Step: Smoothing
 if p.smoothing
