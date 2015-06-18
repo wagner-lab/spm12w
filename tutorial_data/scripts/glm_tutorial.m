@@ -8,7 +8,7 @@ glm.username = 'ddw';
 
 % Paths and names
 glm.study_dir = 'C:\Users\ddw\Documents\MATLAB\tutorial_data';
-glm.prep_name = 'standard_preprocessing';
+glm.prep_name = 'standard_prep';
 glm.glm_name = 'glm_tutorial';
 glm.ons_dir  = 'tutorial';
 
