@@ -455,8 +455,7 @@ if ~strcmp(p.normalize, 'none')
                   'level',p.loglevel)  
             job.subj.def = def_fname.def; % the estimated deformation name
             job.subj.resample = {sprintf('%s,1',anat)}; % file to normalize
-            job.woptions.bb = [-78 -112 -70
-                                78 76 85];
+            job.woptions.bb = p.boundbox;
             job.woptions.vox = p.avoxsize;    % voxelsize for anatomy
             job.woptions.interp = p.interp_w; % we love those big splines
             spm_run_norm(job);

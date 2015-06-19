@@ -144,11 +144,10 @@ def.interp_w   = 7;           %SPM12/8 default 4       | spm2w was 7
 def.interp_c   = 7;           %SPM12/8 default 4       | spm2w was 4
 def.evoxsize   = [3 3 3];     %SPM12/8 default [2x2x2] | Don't resample
 def.avoxsize   = [1 1 1];     %SPM12/8 default [2x2x2] | Don't resample
-def.boundbox   = [-78 -117 -72;...
-                 78 76 86];   %SPM12 default is [-78 -112 -70; 78 76 85]
-                              %SPM8 default is [-78 -112 -50; 78 76 85] 
-							  %But that's for 2x2x2.
-                              %Ours works better for 3x3x3
+def.boundbox   = [-78 -114 -72;...
+                   78 78 84]; %SPM12 default is [-78 -112 -70; 78 76 85]
+                              %SPM8 default is [-78 -112 -50; 78 76 85]
+                              %Ours accomodates with 3x3x3 and 2x2x2. 
                               
 % Cleanup defaults
 def.cleanup    = 1;  % 0 = keep all files (useful for debugging)
