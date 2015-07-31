@@ -10,8 +10,8 @@ function niidata = spm12w_readnii(varargin)
 %
 % voxels   : Matrix of voxels in (e.g.,[x,y,z; x,y,z]) to extract data from.
 %
-% sphere   : Center coordinate and diameter (d) of a sphere from which to 
-%            extract values (e.g., [x,y,z,d]). Data for all voxels within the
+% sphere   : Center coordinate and radius (in mm) of a sphere from which to 
+%            extract values (e.g., [x,y,z,radius]). Data for all voxels within the
 %            sphere will be returned unless vox_avg = 1 (see below). 
 %
 % mask     : Mask image of zeros and ones from which voxel data will be
@@ -172,7 +172,7 @@ for hdr = hdrs
                     [~, roi, ~] = spm_ROI(xY, hdr{1}(1)); 
                     % Inform user of sphere details
                     spm12w_logger('msg',sprintf(['[DEBUG] Extracting voxel ',...
-                                  'data for a sphere (%dmm diameter) ',...
+                                  'data for a sphere (%dmm radius) ',...
                                   'containing %d voxels.'], xY.spec, ...
                                   size(roi,2)),'level',args.loglevel) 
                     
