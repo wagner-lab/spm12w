@@ -41,7 +41,7 @@ function spm12w_glm_rfx(varargin)
 %                        'rfx_dir', 'rfx_tutorial')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: May, 2015
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: September, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -52,8 +52,10 @@ args = spm12w_args('nargs',0, 'defaults', args_defaults, 'arguments', varargin);
 rfx = spm12w_getp('type','glm', 'para_file',args.glm_file);
 
 % If rfx_dir argument was not provided, get rfx_dir from glm parameters
-if isempty(args.rfx_dir)
-    args.rfx_dir = rfx.rfxdir;
+if ~isempty(args.rfx_dir) && isempty(strfind(args.rfx_dir,fullfile(rfx.anadir,'rfx')))
+    rfx.rfxdir = fullfile(rfx.anadir, 'rfx', args.rfx_dir);
+elseif ~isempty(args.rfx_dir)
+    rfx.rfxdir = args.rfx_dir;  
 end
 
 % Check for cell in case user provided allsids as string.
@@ -80,7 +82,7 @@ for rfxcondir = rfx.rfx_conds
                   'on contrast: %s'], rfx.rfx_type, rfxcondir{1}), ...
                   'level',rfx.loglevel)
     % Add the output dir for this rfx analysis to rfx structure and cd to it
-    rfx.rfxcondir = fullfile(args.rfx_dir,rfxcondir{1});
+    rfx.rfxcondir = fullfile(rfx.rfxdir,rfxcondir{1});
     cd(rfx.rfxcondir);
     % RFX analysis setup. 
     % Add file variables to rfx structure.
