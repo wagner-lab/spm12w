@@ -194,7 +194,6 @@ def.hrf       = 'hrf';  %Set to Finite Impulse Response for MIXED designs.
 def.hrfwindow = 20;     %For FIR: Length of HRF window 
 def.hrfbasis  = 8;      %For FIR: Number of bins per window
 
-
 % RFX Specification
 % rfx_type : 'one-sample'
 %            'two-sample' %not yet implemented

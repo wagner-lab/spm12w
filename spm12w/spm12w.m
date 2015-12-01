@@ -36,44 +36,74 @@ args = spm12w_args('nargs',0, 'defaults', args_defaults, 'arguments', varargin);
 if isempty(args.stage)
     spm12w_stager(args.stage, args.sids)
 else
-    % Arise you shining GUI! Arise!
-    ressurect_gui()
+    ressurect_gui() % Arise you shinning GUI.
 end
 
 function ressurect_gui()
     close all
-    % Generate figure
-    spm12wfig = figure('Name','spm12w-gui', ...
+    % Define gui defaults
+    % Define color pallet (push this to defaults later)
+    gui.p_bcknd = [75,87,77] ./255;
+    gui.p_panel = [141,152,118] ./255;
+    gui.p_prepro = [175,66,10] ./255;
+    
+    % Define misc gui details
+    gui.name = 'spm12w-gui';
+    gui.imgfile = which('spm12w_title.jpg');
+    % Define gui positions
+    gui.pos_gui = [50,400,552,616]; %Position to place gui figure (X,Y,W,H)
+    
+    other = [203,179,69];
+    other2 = [96,159,128];
+    % Generate gui
+    spm12wfig = figure('Name',gui.name, ...
                       'MenuBar','none', ...
                       'Toolbar','none', ...
                       'NumberTitle','off', ...
                       'Resize', 'off', ...
-                      'Position',[50,400,552,616]); %X,Y,W,H
-    %Change background
-    set(spm12wfig, 'Color', ([202,198,191] ./255));
-    %Set image
-    imgfile    = which('spm12w_title.jpg');
-    titleimage = axes('Units', 'pixels','position', [2,536,550,107]); %X,Y then Width, Height
-    titleimg   = imread(imgfile);
-    image(titleimg); 
-    axis off 
-    axis image
-    %Set Panels
-    ypos = 500; %Sets starting Y position of panels. All other position is relative
-    p0 = uipanel('BackgroundColor',([47,48,48] ./255),'Units','pixels','Position',[52, 1,450,568]);
-    p1 = uipanel('BackgroundColor',([82,30,27] ./255),'Units','pixels','Position',[60, ypos,435,62]);
-    p2 = uipanel('BackgroundColor',([92,34,26] ./255),'Units','pixels','Position',[60, (ypos - 66),435,62]);
-    p3 = uipanel('BackgroundColor',([102,38,25] ./255),'Units','pixels','Position',[60, (ypos - 104),435,34]);
-    p4 = uipanel('BackgroundColor',([112,42,24] ./255),'Units','pixels','Position',[60, (ypos - 170),435,62]);
-    p5 = uipanel('BackgroundColor',([122,46,23] ./255),'Units','pixels','Position',[60, (ypos - 208),435,34]);
-    p6 = uipanel('BackgroundColor',([122,46,23] ./255),'Units','pixels','Position',[60, (ypos - 274),435,62]);
-    p7 = uipanel('BackgroundColor',([112,42,24] ./255),'Units','pixels','Position',[60, (ypos - 312),435,34]);   
-    p8 = uipanel('BackgroundColor',([132,50,22] ./255),'Units','pixels','Position',[60, (ypos - 350),435,34]);
-    p9 = uipanel('BackgroundColor',([142,54,21] ./255),'Units','pixels','Position',[60, (ypos - 388),435,34]);
-    p10 = uipanel('BackgroundColor',([152,58,20] ./255),'Units','pixels','Position',[60, (ypos - 454),435,62]);
-    p11 = uipanel('BackgroundColor',([162,64,19] ./255),'Units','pixels','Position',[60, (ypos - 492),435,34]);   
-    
-    process={'Preprocess',...                         %1
+                      'Position',gui.pos_gui, ...
+                      'color', gui.p_bcknd); 
+    % Set gui image
+    titleimage = axes('Units','pixels','position',[2,536,550,107]); 
+    image(imread(imgfile)); 
+    axis('off','image') 
+    % Define Panels
+    ypos = 500; %Sets starting Y position. All other is relative to this
+    % Main panel
+    p0 = uipanel('BackgroundColor',(gui.p_panel),'Units','pixels',...
+                 'Position',[52,1,450,568]); %p0: main panel
+    % Preprocessing Panel
+    p1 = uipanel('BackgroundColor',(gui.p_prepro),'Units','pixels',...
+                 'Position',[60,ypos,435,62]); %p1: prepro panel
+    % GLM / RFX Panel
+    p2 = uipanel('BackgroundColor',([92,34,26] ./255),'Units','pixels',...
+                 'Position',[60,(ypos-66),435,62]);
+    % PPI Panel
+    p3 = uipanel('BackgroundColor',([102,38,25] ./255),'Units','pixels',...
+                 'Position',[60, (ypos-132),435,62]);
+    % ROI and Conjunction panel
+    p4 = uipanel('BackgroundColor',([112,42,24] ./255),'Units','pixels',...
+                 'Position',[60, (ypos - 198),435,62]);
+    % Segment and Dartel panel
+    p5 = uipanel('BackgroundColor',([122,46,23] ./255),'Units','pixels',...
+                 'Position',[60, (ypos - 236),435,34]);
+    % REST preprocessing panel (wip)
+    p6 = uipanel('BackgroundColor',([122,46,23] ./255),'Units','pixels',...
+                 'Position',[60, (ypos - 302),435,62]);
+    % Artifact detection panel (wip)
+    p7 = uipanel('BackgroundColor',([112,42,24] ./255),'Units','pixels',...
+                 'Position',[60, (ypos - 340),435,34]);   
+    % Alphasim panel (wip)
+    p8 = uipanel('BackgroundColor',([132,50,22] ./255),'Units','pixels',...
+                 'Position',[60, (ypos - 378),435,34]);
+    % Design search and build panel (wip)
+    p9 = uipanel('BackgroundColor',([142,54,21] ./255),'Units','pixels',...
+                 'Position',[60, (ypos - 416),435,34]);
+    % Utilities panel
+    p10 = uipanel('BackgroundColor',([152,58,20] ./255),'Units','pixels',...
+                  'Position',[60, (ypos - 482),435,62]);
+    % Define stage text 
+    stage={'Preprocess',...                         %1
              'Preprocess/GLM',...                     %2
              'Preprocess/GLM/Contrasts',...           %3
              'Estimate GLM',...                       %4
@@ -99,40 +129,39 @@ function ressurect_gui()
              'PAR/REC Converter'};                    %24
      %Set Buttons
      %Panel 01-Preprocessing
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p1,'Callback',{@choice, 1});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{2},'Units', 'pixels','Position',[229,31,160,26],'Parent',p1,'Callback',{@choice, 2});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p1,'Callback',{@choice, 1});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{2},'Units', 'pixels','Position',[229,31,160,26],'Parent',p1,'Callback',{@choice, 2});
      uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{3},'Units', 'pixels','Position',[84,3,260,26],'Parent',p1,'Callback',{@choice, 3});
      %Panel 02-GLM
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{4},'Units', 'pixels','Position',[44,31,160,26],'Parent',p2, 'Callback',{@choice, 4});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{5},'Units', 'pixels','Position',[229,31,160,26],'Parent',p2, 'Callback',{@choice, 5});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{6},'Units', 'pixels','Position',[84,3,260,26],'Parent',p2, 'Callback',{@choice, 6});
-     %Panel 03-RFX
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{7},'Units', 'pixels','Position',[84,3,260,26],'Parent',p3,'Callback',{@choice, 7});
-     %Panel 04-PPI
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{8},'Units', 'pixels','Position',[44,31,160,26],'Parent',p4, 'Callback',{@choice, 8});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{9},'Units', 'pixels','Position',[229,31,160,26],'Parent',p4, 'Callback',{@choice, 9});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{10},'Units', 'pixels','Position',[84,3,260,26],'Parent',p4, 'Callback',{@choice, 10});      
-     %Panel 05-ROI and Conjunction
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{11},'Units', 'pixels','Position',[44,3,160,26],'Parent',p5, 'Callback',{@choice, 11});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{12},'Units', 'pixels','Position',[229,3,160,26],'Parent',p5,'Callback',{@choice, 12});
-     %Panel 06-Segment and DARTEL
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{13},'Units', 'pixels','Position',[44,31,160,26],'Parent',p6, 'Callback',{@choice, 13});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{14},'Units', 'pixels','Position',[229,31,160,26],'Parent',p6, 'Callback',{@choice, 14});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{15},'Units', 'pixels','Position',[44,3,160,26],'Parent',p6, 'Callback',{@choice, 15});      
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{16},'Units', 'pixels','Position',[229,3,160,26],'Parent',p6, 'Callback',{@choice, 16});           
-     %Panel 07-REST Preprocessing
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{17},'Units', 'pixels','Position',[84,3,260,26],'Parent',p7,'Callback',{@choice, 17});
-     %Panel 08-Artifact Detection
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{18},'Units', 'pixels','Position',[84,3,260,26],'Parent',p8,'Callback',{@choice, 18});
-     %Panel 09-AlphaSim
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{19},'Units', 'pixels','Position',[84,3,260,26],'Parent',p9,'Callback',{@choice, 19});
-     %Panel 10-Design Search, Check & Build
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{20},'Units', 'pixels','Position',[44,31,160,26],'Parent',p10,'Callback',{@choice, 20});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{21},'Units', 'pixels','Position',[229,31,160,26],'Parent',p10,'Callback',{@choice, 21});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{22},'Units', 'pixels','Position',[84,3,260,26],'Parent',p10,'Callback',{@choice, 22});
-     %Panel 11-Utilities
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{23},'Units', 'pixels','Position',[44,3,160,26],'Parent',p11, 'Callback',{@choice, 23});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{24},'Units', 'pixels','Position',[229,3,160,26],'Parent',p11, 'Callback',{@choice, 24});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{4},'Units', 'pixels','Position',[44,31,160,26],'Parent',p2, 'Callback',{@choice, 4});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{5},'Units', 'pixels','Position',[229,31,160,26],'Parent',p2, 'Callback',{@choice, 5});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{6},'Units', 'pixels','Position',[44,3,160,26],'Parent',p2, 'Callback',{@choice, 6});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{7},'Units', 'pixels','Position',[229,3,160,26],'Parent',p2,'Callback',{@choice, 7});
+     %Panel 03-PPI
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{8},'Units', 'pixels','Position',[44,31,160,26],'Parent',p3, 'Callback',{@choice, 8});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{9},'Units', 'pixels','Position',[229,31,160,26],'Parent',p3, 'Callback',{@choice, 9});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{10},'Units', 'pixels','Position',[84,3,260,26],'Parent',p3, 'Callback',{@choice, 10});      
+     %Panel 04-ROI and Conjunction
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{11},'Units', 'pixels','Position',[44,3,160,26],'Parent',p4, 'Callback',{@choice, 11});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{12},'Units', 'pixels','Position',[229,3,160,26],'Parent',p4,'Callback',{@choice, 12});
+     %Panel 05-Segment and DARTEL
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{13},'Units', 'pixels','Position',[44,31,160,26],'Parent',p5, 'Callback',{@choice, 13});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{14},'Units', 'pixels','Position',[229,31,160,26],'Parent',p5, 'Callback',{@choice, 14});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{15},'Units', 'pixels','Position',[44,3,160,26],'Parent',p5, 'Callback',{@choice, 15});      
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{16},'Units', 'pixels','Position',[229,3,160,26],'Parent',p5, 'Callback',{@choice, 16});           
+     %Panel 06-REST Prestageing
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{17},'Units', 'pixels','Position',[84,3,260,26],'Parent',p6,'Callback',{@choice, 17});
+     %Panel 07-Artifact Detection
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{18},'Units', 'pixels','Position',[84,3,260,26],'Parent',p7,'Callback',{@choice, 18});
+     %Panel 08-AlphaSim
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{19},'Units', 'pixels','Position',[84,3,260,26],'Parent',p8,'Callback',{@choice, 19});
+     %Panel 09-Design Search, Check & Build
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{20},'Units', 'pixels','Position',[44,31,160,26],'Parent',p9,'Callback',{@choice, 20});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{21},'Units', 'pixels','Position',[229,31,160,26],'Parent',p9,'Callback',{@choice, 21});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{22},'Units', 'pixels','Position',[84,3,260,26],'Parent',p9,'Callback',{@choice, 22});
+     %Panel 10-Utilities
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{23},'Units', 'pixels','Position',[44,3,160,26],'Parent',p10, 'Callback',{@choice, 23});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{24},'Units', 'pixels','Position',[229,3,160,26],'Parent',p10, 'Callback',{@choice, 24});
 return
 
 
