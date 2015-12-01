@@ -53,7 +53,7 @@ args = spm12w_args('nargs',0, 'defaults',arg_defaults, 'arguments',varargin);
 
 % Check for only one user directory under scripts
 dirchk = dir(fullfile(pwd,'scripts'));
-if length(dirchk) == 3
+if length(dirchk) == 3 && dirchk(3).isdir
     para_path = fullfile(pwd,'scripts',dirchk(3).name);
 else
     para_path = fullfile(pwd,'scripts');
