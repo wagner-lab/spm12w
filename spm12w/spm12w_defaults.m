@@ -194,7 +194,6 @@ def.hrf       = 'hrf';  %Set to Finite Impulse Response for MIXED designs.
 def.hrfwindow = 20;     %For FIR: Length of HRF window 
 def.hrfbasis  = 8;      %For FIR: Number of bins per window
 
-
 % RFX Specification
 % rfx_type : 'one-sample'
 %            'two-sample' %not yet implemented
@@ -203,4 +202,6 @@ def.rfx_type  = 'one-sample';
 def.rfx_im    = 1; % Implicit masking for NaN & 0 values at 2nd level.
 
 % ROI Specification
-def.roi_size  = 6; % Default roi size is 6mm
+def.roi_size  = 6;  % Default roi size is 6mm
+def.spec_file = ''; % name of a csv file specifying rois
+def.var_file  = ''; % name of a csv file with subject variables

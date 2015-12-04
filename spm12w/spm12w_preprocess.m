@@ -40,7 +40,7 @@ function spm12w_preprocess(varargin)
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
-args_defaults = struct('sid','s01', 'para_file','');
+args_defaults = struct('sid','', 'para_file','');
 args = spm12w_args('nargs',2, 'defaults', args_defaults, 'arguments', varargin);
 
 % Load parameters
@@ -637,10 +637,9 @@ try
     close(F)
 end
 
-% Convert multipage ps file to pdf using ps2pdf.m
-ps2pdf('psfile',fullfile(p.datadir,'preprocess.ps'),...
-       'pdffile',fullfile(p.datadir,[p.prep_name,'.pdf']), 'gspapersize','a4',...
-       'deletepsfile',1);
+% Convert multipage ps file to pdf using spm12w_ps2pdf.m
+spm12w_ps2pdf('ps_file',fullfile(p.datadir,'preprocess.ps'),...
+              'pdf_file',fullfile(p.datadir,[p.prep_name,'.pdf']));
 
 % Save parameter structure to mat file
 save([p.prep_name,'.mat'],'p');

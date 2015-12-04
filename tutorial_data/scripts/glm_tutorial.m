@@ -24,6 +24,9 @@ glm.events     = {'human','animal','vegetable','mineral'};
 glm.blocks     = {};
 glm.regressors = {};
 
+% GLM Parametric modualtors - Special keyword: 'allthethings'
+glm.parametrics = {'humanxattract','humanxlike'}; 
+
 % GLM Model Inclusions - 1=yes 0=no
 glm.include_run = 'all'; % Specify run to model: 'all' or runs (e.g. [1,3])
 glm.use_smooth  = 1;     % Run GLM on: 1 = smoothed, 2 = unsmoothed

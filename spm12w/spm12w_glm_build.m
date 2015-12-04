@@ -94,14 +94,37 @@ if ismember(args.type, {'events','blocks','regressors'})
                           '%1.1f'], glm.tr), 'level',glm.loglevel)
             onsets.(onsname{1}).dur = onsets.(onsname{1})(:,2).*glm.tr; 
         end
-        % Check for sid specific parametrics otherwise global
-        % As we don't know exactly how many parametrics, we do a dir. 
-        sidfname = sprintf('%s_%sx*.%s', glm.sid, onsname{1}, glm.ons_ext);
-        onsfname = sprintf('%sx*.%s', onsname{1}, glm.ons_ext);
-        parlist = dir(fullfile(glm.onsdir,sidfname));
-        if isempty(parlist)
-            % If parlist based on sid is empty then try looking for onsfname
-            parlist = dir(fullfile(glm.onsdir,onsfname));
+        % Check for special keyword to grab all the parametrics
+        if size(glm.parametrics,2) == 1 && strcmp(glm.parametrics{1},'allthethings')
+            % Check for sid specific parametrics otherwise global
+            % As we don't know exactly how many parametrics, we do a dir. 
+            sidfname = sprintf('%s_%sx*.%s', glm.sid, onsname{1}, glm.ons_ext);
+            onsfname = sprintf('%sx*.%s', onsname{1}, glm.ons_ext);
+            parlist = dir(fullfile(glm.onsdir,sidfname));
+            if isempty(parlist)
+                % If parlist based on sid is empty then try looking for onsfname
+                parlist = dir(fullfile(glm.onsdir,onsfname));
+            end
+        elseif ~isempty(glm.parametrics)
+            % Not elegant, but iterate through all parametrics and see if
+            % they apply to current onset condition
+            parlist = '';
+            for para = glm.parametrics
+                if strfind(para{1},onsname{1}) == 1
+                    % Check for sid specific parametrics otherwise global
+                    % As we don't know exactly how many parametrics, we do a dir. 
+                    sidfname = sprintf('%s_%s.%s', glm.sid, para{1}, glm.ons_ext);
+                    onsfname = sprintf('%s.%s', para{1}, glm.ons_ext);
+                    if exist(fullfile(glm.onsdir,sidfname),'file') == 2
+                        parlist(end+1,1).name = sidfname;
+                    elseif exist(fullfile(glm.onsdir,onsfname),'file') == 2
+                        parlist(end+1,1).name = onsfname;
+                    end   
+                end
+            end        
+        else
+            % No parametrics (empty list)
+            parlist = '';      
         end
         if ~isempty(parlist)
             for par_i = 1:size(parlist,1)

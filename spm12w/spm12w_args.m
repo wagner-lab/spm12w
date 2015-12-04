@@ -21,8 +21,9 @@ function u_args = spm12w_args(varargin)
 % Example:
 %
 % Get arguments
-%   >> args = spm12w_args('nargs',2, 'defaults', struct('niifile','', ...
-%                         'subj,'s01'), 'arguments', varargin);
+% 
+%     >> args = spm12w_args('nargs',2, 'defaults', struct('niifile','', ...
+%                           'subj,'s01'), 'arguments', varargin);
 %
 %
 %
@@ -36,7 +37,7 @@ if nargin < 6
            'input arguments...']);
 end
 
-% Define default args (niizip is internal var)
+% Define default args
 args = struct('nargs',1, 'defaults','', 'arguments','');
 options = fieldnames(args);
 
@@ -61,7 +62,7 @@ if ischar(args.nargs)
     args.nargs = str2double(args.nargs);
 end
 
-% Check if sufficient argumetns provided, else give error.
+% Check if sufficient arguments provided, else give error.
 if length(args.arguments) < args.nargs
     error(['Not enough arguments provided, please see help for required ' ...
            'input arguments...']);

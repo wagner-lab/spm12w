@@ -44,7 +44,7 @@ function parameters = spm12w_getp(varargin)
 %                     'para_file','scripts/glm_h8tjazz.m')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: May, 2012 | Updated: May, 2015
+% # Author: Dylan Wagner | Created: May, 2012 | Updated: December, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs

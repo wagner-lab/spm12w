@@ -77,6 +77,7 @@ else
     diary off
     error('Missing required parameters for model estimation (nses, nvols, tr)')     
 end
+
 % Show user the parameters we harvested.
 tmp_nvols = [];
 for i = 1:length(glm.nvols)
@@ -248,10 +249,9 @@ if glm.design_only == 0
             delete(epifile)
         end    
     end    
-    % Convert multipage ps file to pdf using ps2pdf.m
-    ps2pdf('psfile',fullfile(glm.glmdir,'glm.ps'),...
-       'pdffile',fullfile(glm.glmdir,[glm.glm_name,'.pdf']), 'gspapersize','a4',...
-       'deletepsfile',1);      
+    % Convert multipage ps file to pdf
+    spm12w_ps2pdf('ps_file',fullfile(glm.glmdir,'glm.ps'),...
+                  'pdf_file',fullfile(glm.glmdir,[glm.glm_name,'.pdf']))
     % Set final words (include figure)
     msglist{1} = glm.niceline;
     msglist{2} = sprintf('GLM specification complete on subject: %s',glm.sid);
