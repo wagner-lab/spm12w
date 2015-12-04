@@ -44,7 +44,7 @@ function parameters = spm12w_getp(varargin)
 %                     'para_file','scripts/glm_h8tjazz.m')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: May, 2012 | Updated: May, 2015
+% # Author: Dylan Wagner | Created: May, 2012 | Updated: December, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -53,7 +53,7 @@ args = spm12w_args('nargs',0, 'defaults',arg_defaults, 'arguments',varargin);
 
 % Check for only one user directory under scripts
 dirchk = dir(fullfile(pwd,'scripts'));
-if length(dirchk) == 3
+if length(dirchk) == 3 && dirchk(3).isdir
     para_path = fullfile(pwd,'scripts',dirchk(3).name);
 else
     para_path = fullfile(pwd,'scripts');
