@@ -311,8 +311,9 @@ function gsData = LocalParseArgs(varargin)
               gsData.useBuiltin = 1; % use builtin Ghostscript
            end
         end
-        if ~exist(ghostDir, 'dir')
-           error('ps2pdf:ghostscriptCommand', ...
+
+        if ~exist(ghostDir, 'dir')  
+           error('ps2pdf:ghostscriptCommand', ...                                           
                  'Can not find Ghostscript installed with MATLAB in <%s>',...
                  ghostDir);
         end
@@ -320,13 +321,13 @@ function gsData = LocalParseArgs(varargin)
         if ~isempty(gsData.cmd)
            % if using MATLAB's version of GhostScript, use same set of fonts and library files
            if isfield(gsData, 'fontPath') || isfield(gsData, 'libPath')
-              warning('ps2pdf:ghostscriptPathOverride', ...
+              error('ps2pdf:ghostscriptPathOverride', ...                                   
                     'Using MATLAB''s version of Ghostscript; overriding ''gsfontpath'' and ''gslibpath'' to use builtin MATLAB version');
            end
            gsData.fontPath = fullfile( ghostDir, 'fonts', '');
            gsData.libPath = fullfile( ghostDir, 'ps_files', '');
         else 
-            error('ps2pdf:noGhostscriptCommand', ...
+            error('ps2pdf:noGhostscriptCommand', ...                                       
                   'Can not find Ghostscript program in MATLAB');
         end
     else
