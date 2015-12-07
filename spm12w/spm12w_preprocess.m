@@ -639,7 +639,11 @@ end
 
 % Convert multipage ps file to pdf using spm12w_ps2pdf.m
 spm12w_ps2pdf('ps_file',fullfile(p.datadir,'preprocess.ps'),...
-              'pdf_file',fullfile(p.datadir,[p.prep_name,'.pdf']));
+              'pdf_file',fullfile(p.datadir,[p.sid,'_',p.prep_name,'.pdf']));
+
+% Copy qa pdf to qa dir.
+copyfile(fullfile(p.datadir,[p.sid,'_',p.prep_name,'.pdf']), ...
+         fullfile(p.qadir,[p.sid,'_',p.prep_name,'.pdf']));
 
 % Save parameter structure to mat file
 save([p.prep_name,'.mat'],'p');
@@ -648,7 +652,7 @@ save([p.prep_name,'.mat'],'p');
 msglist{1} = p.niceline;
 msglist{2} = sprintf('Preprocessing complete on subject: %s',p.sid);
 msglist{3} = sprintf('Log file   : %s', fullfile(p.datadir, p.preplog));
-msglist{4} = sprintf('Figures    : %s', fullfile(p.datadir,[p.prep_name,'.pdf']));
+msglist{4} = sprintf('Figures    : %s', fullfile(p.datadir,[p.sid,'_',p.prep_name,'.pdf']));
 msglist{5} = sprintf('Parameters : %s', fullfile(p.datadir,[p.prep_name,'.mat']));
 if p.snr
     msglist{6} = sprintf('QA output  : %s', fullfile(p.qadir));

@@ -3,26 +3,36 @@ function spm12w(varargin)
 %
 % Inputs
 % ------
-% stage: Number (e.g., 3) or vector of numbers (e.g. [1,2,3,4,5]) for the 
-%        specific analysis stage desired. Supplying a stage will override
-%        the gui and go directly to performing the analysis stage.
+% stage: String for the specific analysis stage desired. Supplying a stage
+%        will override the gui and go directly to performing the analysis
+%        stage.
 %
 % sids: Cell array of subject ids. If left unspecified, a dialog box will
 %       appear asking the user to select subjects. If stage is empty, then
-%       specifying sids will not override the gui. 
+%       specifying sids will not override the gui. You may also specify
+%       the path to a .mat file containing a saved sidlist cell array 
+%       (e.g. sidlist = {'s01','s04','s12'}; save('sidlist.mat','sidlist'))
 %
-
 % Examples:
 % Please note that spm12w should always be run from a study's top-level 
 % directory.
 %
-% To run spm12w preprocessing on subjects s01 and s02 overriding the gui:
-%  
-%       >> spm12w('stage',1,'sids',{'s01','s02'})
 %
 % To select analyses via the spm12w gui, type spm12w with no argument:
 %    
 %       >> spm12w
+%
+% To run spm12w preprocessing on sids s01 and s02 overriding the gui:
+%  
+%       >> spm12w('stage','prep','sids',{'s01','s02'})
+%
+% To run spm12w preprocessing on sids s01 and s02 w/o overriding the gui:
+%  
+%       >> spm12w('sids',{'s01','s02'})
+%
+% To run spm12w preprocessing on a saved list of sids overriding the gui:
+%  
+%       >> spm12w('stage','prep','sids','./auxil/sidlist.mat')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
 % # Author: Dylan Wagner | Created: May, 2015 | Updated: December, 2015
@@ -32,14 +42,19 @@ function spm12w(varargin)
 args_defaults = struct('stage','', 'sids','');
 args = spm12w_args('nargs',0, 'defaults', args_defaults, 'arguments', varargin);
 
-% If user submitted an analysis stage then they do not invoke gui.
-if isempty(args.stage)
-    spm12w_stager(args.stage, args.sids)
-else
-    ressurect_gui() % Arise you shinning GUI.
+% Check for user supplied sidlist mat file
+if length(args.sids) == 1 && any(strfind(args.sids{1},'.mat'))
+    args.sids = load(args.sids{1});
 end
 
-function ressurect_gui()
+% If user submitted an analysis stage then they do not invoke gui.
+if isempty(args.stage)
+    ressurect_gui(args.sids) % Arise you shinning GUI.
+else
+    stager(args.stage, args.sids) 
+end
+
+function ressurect_gui(sids)
     close all
     % Define gui defaults
     % Define color pallet (push this to defaults later)
@@ -65,7 +80,7 @@ function ressurect_gui()
                       'color', gui.p_bcknd); 
     % Set gui image
     titleimage = axes('Units','pixels','position',[2,536,550,107]); 
-    image(imread(imgfile)); 
+    image(imread(gui.imgfile)); 
     axis('off','image') 
     % Define Panels
     ypos = 500; %Sets starting Y position. All other is relative to this
@@ -103,65 +118,137 @@ function ressurect_gui()
     p10 = uipanel('BackgroundColor',([152,58,20] ./255),'Units','pixels',...
                   'Position',[60, (ypos - 482),435,62]);
     % Define stage text 
-    stage={'Preprocess',...                         %1
-             'Preprocess/GLM',...                     %2
-             'Preprocess/GLM/Contrasts',...           %3
-             'Estimate GLM',...                       %4
-             'Estimate GLM/Contrasts',...             %5
-             'Compute Contrasts',...                  %6
-             'Random Effects',...                     %7
-             'VOI Extraction',...                     %8
-             'PPI Reg Maker',...                      %9
-             'PPI Plotter',...                        %10
-             'ROI Analysis',...                       %11
-             'Conjunction Analysis',...               %12
-             'Segment Anatomy',...                    %13
-             'Template & Flow Fields',...             %14
-             'Normalize Anatomy',...                  %15
-             'Normalize Functional',...               %16
-             'REST Preprocess',...                    %17
-             'ART Outlier Detection',...              %18
-             'Monte Carlo Simulations (AlphaSim)',... %19
-             'Design Search',...                      %20
-             'Design Check',...                       %21
-             'Design Build',...                       %22
-             'Onset Maker',...                        %23
-             'PAR/REC Converter'};                    %24
+    stage={'Preprocess','prep';
+           'Preprocess & GLM','prep_glm';
+           'Preprocess & GLM & Contrasts','prep_glm_con';
+           'Estimate GLM','glm';
+           'Estimate GLM & Contrasts','glm_con';
+           'Compute Contrasts','con';
+           'Random Effects','rfx';
+           'VOI Extraction','voi';
+           'WIP-PPI Reg Maker','ppi';
+           'WIP-PPI Plotter','ppplot';
+           'ROI Analysis','roi';
+           'WIP-Conjunction Analysis','conj';
+           'Segment Anatomy','seg8';
+           'WIP-Template & Flow Fields','tempflow';
+           'Normalize Anatomy','nanat';
+           'Normalize Functional','nfunc';
+           'WIP-REST Preprocess','rest';
+           'ART Outlier Detection','art';
+           'WIP-Monte Carlo Simulations (AlphaSim)','alphasim';
+           'WIP-Design Search','dsearch';
+           'WIP-Design Check','dcheck';
+           'WIP-Design Build','dbuild';
+           'WIP-Onset Maker','onsmk';
+           'PAR/REC Converter', 'prepare'};
      %Set Buttons
      %Panel 01-Preprocessing
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p1,'Callback',{@choice, 1});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{2},'Units', 'pixels','Position',[229,31,160,26],'Parent',p1,'Callback',{@choice, 2});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',process{3},'Units', 'pixels','Position',[84,3,260,26],'Parent',p1,'Callback',{@choice, 3});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{1,1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p1,'Callback',{@stager, 'prep',sids});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{2,1},'Units', 'pixels','Position',[229,31,160,26],'Parent',p1,'Callback',{@stager, stage{2,2}});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{3,1},'Units', 'pixels','Position',[84,3,260,26],'Parent',p1,'Callback',{@stager, stage{3,2}});
      %Panel 02-GLM
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{4},'Units', 'pixels','Position',[44,31,160,26],'Parent',p2, 'Callback',{@choice, 4});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{5},'Units', 'pixels','Position',[229,31,160,26],'Parent',p2, 'Callback',{@choice, 5});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{6},'Units', 'pixels','Position',[44,3,160,26],'Parent',p2, 'Callback',{@choice, 6});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{7},'Units', 'pixels','Position',[229,3,160,26],'Parent',p2,'Callback',{@choice, 7});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{4,1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p2, 'Callback',{@stager, 4});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{5,1},'Units', 'pixels','Position',[229,31,160,26],'Parent',p2, 'Callback',{@stager, 5});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{6,1},'Units', 'pixels','Position',[44,3,160,26],'Parent',p2, 'Callback',{@choice, 6});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{7,1},'Units', 'pixels','Position',[229,3,160,26],'Parent',p2,'Callback',{@choice, 7});
      %Panel 03-PPI
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{8},'Units', 'pixels','Position',[44,31,160,26],'Parent',p3, 'Callback',{@choice, 8});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{9},'Units', 'pixels','Position',[229,31,160,26],'Parent',p3, 'Callback',{@choice, 9});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{10},'Units', 'pixels','Position',[84,3,260,26],'Parent',p3, 'Callback',{@choice, 10});      
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{8,1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p3, 'Callback',{@choice, 8});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{9,1},'Units', 'pixels','Position',[229,31,160,26],'Parent',p3, 'Callback',{@choice, 9});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{10,1},'Units', 'pixels','Position',[84,3,260,26],'Parent',p3, 'Callback',{@choice, 10});      
      %Panel 04-ROI and Conjunction
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{11},'Units', 'pixels','Position',[44,3,160,26],'Parent',p4, 'Callback',{@choice, 11});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{12},'Units', 'pixels','Position',[229,3,160,26],'Parent',p4,'Callback',{@choice, 12});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{11,1},'Units', 'pixels','Position',[44,3,160,26],'Parent',p4, 'Callback',{@choice, 11});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{12,1},'Units', 'pixels','Position',[229,3,160,26],'Parent',p4,'Callback',{@choice, 12});
      %Panel 05-Segment and DARTEL
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{13},'Units', 'pixels','Position',[44,31,160,26],'Parent',p5, 'Callback',{@choice, 13});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{14},'Units', 'pixels','Position',[229,31,160,26],'Parent',p5, 'Callback',{@choice, 14});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{15},'Units', 'pixels','Position',[44,3,160,26],'Parent',p5, 'Callback',{@choice, 15});      
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{16},'Units', 'pixels','Position',[229,3,160,26],'Parent',p5, 'Callback',{@choice, 16});           
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{13,1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p5, 'Callback',{@choice, 13});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{14,1},'Units', 'pixels','Position',[229,31,160,26],'Parent',p5, 'Callback',{@choice, 14});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{15,1},'Units', 'pixels','Position',[44,3,160,26],'Parent',p5, 'Callback',{@choice, 15});      
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{16,1},'Units', 'pixels','Position',[229,3,160,26],'Parent',p5, 'Callback',{@choice, 16});           
      %Panel 06-REST Prestageing
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{17},'Units', 'pixels','Position',[84,3,260,26],'Parent',p6,'Callback',{@choice, 17});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{17,1},'Units', 'pixels','Position',[84,3,260,26],'Parent',p6,'Callback',{@choice, 17});
      %Panel 07-Artifact Detection
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{18},'Units', 'pixels','Position',[84,3,260,26],'Parent',p7,'Callback',{@choice, 18});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{18,1},'Units', 'pixels','Position',[84,3,260,26],'Parent',p7,'Callback',{@choice, 18});
      %Panel 08-AlphaSim
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{19},'Units', 'pixels','Position',[84,3,260,26],'Parent',p8,'Callback',{@choice, 19});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{19,1},'Units', 'pixels','Position',[84,3,260,26],'Parent',p8,'Callback',{@choice, 19});
      %Panel 09-Design Search, Check & Build
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{20},'Units', 'pixels','Position',[44,31,160,26],'Parent',p9,'Callback',{@choice, 20});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{21},'Units', 'pixels','Position',[229,31,160,26],'Parent',p9,'Callback',{@choice, 21});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{22},'Units', 'pixels','Position',[84,3,260,26],'Parent',p9,'Callback',{@choice, 22});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{20,1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p9,'Callback',{@choice, 20});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{21,1},'Units', 'pixels','Position',[229,31,160,26],'Parent',p9,'Callback',{@choice, 21});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{22,1},'Units', 'pixels','Position',[84,3,260,26],'Parent',p9,'Callback',{@choice, 22});
      %Panel 10-Utilities
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{23},'Units', 'pixels','Position',[44,3,160,26],'Parent',p10, 'Callback',{@choice, 23});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{24},'Units', 'pixels','Position',[229,3,160,26],'Parent',p10, 'Callback',{@choice, 24});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{23,1},'Units', 'pixels','Position',[44,3,160,26],'Parent',p10, 'Callback',{@choice, 23});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{24,1},'Units', 'pixels','Position',[229,3,160,26],'Parent',p10, 'Callback',{@choice, 24});
 return
 
+% Implement the requested stage
+function stager(h, eventdata, rstage, sids)
+    close(gcf);
 
+    % Load sids for stages that require them
+    sidstages = {'prep','prep_glm','prep_glm_con','glm','glm_con','con',...
+                 'rfx','voi','roi','seg8','nanat','nfunc','rest'};
+    if isempty(sids)
+        if ismember(rstage,sidstages(1:3))
+            sids = spm12w_getsid(fullfile(pwd,'raw'));
+        elseif ismember(rstage,sidstages(4:end))
+            sids = spm12w_getsid();
+        end
+    end
+    
+    switch rstage
+        case 'prep'
+            p = spm12w_getp;
+            for sid = sids
+                spm12w_preprocess('sid',sid{1},'para_file',p.para_file);
+            end
+
+        case 'prep_glm'
+            p = spm12w_getp('type','p');
+            g = spm12w_getp('type','glm');
+            for sid = sids
+                spm12w_preprocess('sid',sid{1},'para_file',p.para_file);
+                spm12w_glm_compute('sid',sid{1},'glm_file',g.para_file);
+            end
+
+        case 'prep_glm_con'
+            p = spm12w_getp;
+            g = spm12w_getp('type','glm');
+            for sid = sids
+                spm12w_preprocess('sid',sid{1},'para_file',p.para_file);
+                spm12w_glm_compute('sid',sid{1},'glm_file',g.para_file);
+                spm12w_contrasts('sid',sid{1},'glm_file',g.para_file);
+            end
+
+        case 'glm'
+            g = spm12w_getp('type','glm');
+            for sid = sids
+                spm12w_glm_compute('sid',sid{1},'glm_file',g.para_file);
+            end
+
+        case 'glm_con'
+            g = spm12w_getp('type','glm');
+            for sid = sids
+                spm12w_glm_compute('sid',sid{1},'glm_file',g.para_file);
+                spm12w_contrasts('sid',sid{1},'glm_file',g.para_file);
+            end
+        case 'con'
+            g = spm12w_getp('type','glm');
+            for sid = sids
+                spm12w_contrasts('sid',sid{1},'glm_file',g.para_file);
+            end
+
+        case 'rfx'
+            p = spm12w_getp;
+            for sid = sids
+                spm12w_preprocess('sid',sid{1},'para_file',p.para_file);
+            end
+
+        case 'roi'
+            p = spm12w_getp;
+            for sid = sids
+                spm12w_preprocess('sid',sid{1},'para_file',p.para_file);
+            end
+        
+        otherwise
+            error('not supported')        
+    end
+return
