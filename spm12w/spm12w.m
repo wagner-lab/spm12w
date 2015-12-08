@@ -17,7 +17,6 @@ function spm12w(varargin)
 % Please note that spm12w should always be run from a study's top-level 
 % directory.
 %
-%
 % To select analyses via the spm12w gui, type spm12w with no argument:
 %    
 %       >> spm12w
@@ -42,9 +41,24 @@ function spm12w(varargin)
 args_defaults = struct('stage','', 'sids','');
 args = spm12w_args('nargs',0, 'defaults', args_defaults, 'arguments', varargin);
 
-% Check for user supplied sidlist mat file
+% Clear functions is necessary to force update of .m files that have been
+% changed. Ocassionally Matlab fails to notice an updated parameters (.m)
+% file and runs a prior version cached in memory. Seems to affect linux 
+% primarily but no harm running on pc/mac
+clear functions
+
+% assign cwd for oncleanup
+cwd=pwd;
+
+% Check for user using strings instead of cells.
+if ischar(args.sids)
+    args.sids = cellstr(args.sids);
+end
+
+% Check for user user supplied sidlist mat file
 if length(args.sids) == 1 && any(strfind(args.sids{1},'.mat'))
     args.sids = load(args.sids{1});
+    args.sids = args.sids.sids; %fix for matlab loading into struct array
 end
 
 % If user submitted an analysis stage then they do not invoke gui.
@@ -53,6 +67,9 @@ if isempty(args.stage)
 else
     stager(args.stage, args.sids) 
 end
+  
+% on cleanup return to root.
+croot = onCleanup(@()cd(cwd));
 
 function ressurect_gui(sids)
     close all
@@ -145,19 +162,19 @@ function ressurect_gui(sids)
      %Set Buttons
      %Panel 01-Preprocessing
      uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{1,1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p1,'Callback',{@stager, 'prep',sids});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{2,1},'Units', 'pixels','Position',[229,31,160,26],'Parent',p1,'Callback',{@stager, stage{2,2}});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{3,1},'Units', 'pixels','Position',[84,3,260,26],'Parent',p1,'Callback',{@stager, stage{3,2}});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{2,1},'Units', 'pixels','Position',[229,31,160,26],'Parent',p1,'Callback',{@stager,'prep_glm',sids});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{3,1},'Units', 'pixels','Position',[84,3,260,26],'Parent',p1,'Callback',{@stager, 'prep_glm',sids});
      %Panel 02-GLM
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{4,1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p2, 'Callback',{@stager, 4});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{5,1},'Units', 'pixels','Position',[229,31,160,26],'Parent',p2, 'Callback',{@stager, 5});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{6,1},'Units', 'pixels','Position',[44,3,160,26],'Parent',p2, 'Callback',{@choice, 6});
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{7,1},'Units', 'pixels','Position',[229,3,160,26],'Parent',p2,'Callback',{@choice, 7});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{4,1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p2, 'Callback',{@stager, 'glm',sids});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{5,1},'Units', 'pixels','Position',[229,31,160,26],'Parent',p2, 'Callback',{@stager, 'glm_con',sids});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{6,1},'Units', 'pixels','Position',[44,3,160,26],'Parent',p2, 'Callback',{@stager, 'con',sids});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{7,1},'Units', 'pixels','Position',[229,3,160,26],'Parent',p2,'Callback',{@stager, 'rfx',sids});
      %Panel 03-PPI
      uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{8,1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p3, 'Callback',{@choice, 8});
      uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{9,1},'Units', 'pixels','Position',[229,31,160,26],'Parent',p3, 'Callback',{@choice, 9});
      uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{10,1},'Units', 'pixels','Position',[84,3,260,26],'Parent',p3, 'Callback',{@choice, 10});      
      %Panel 04-ROI and Conjunction
-     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{11,1},'Units', 'pixels','Position',[44,3,160,26],'Parent',p4, 'Callback',{@choice, 11});
+     uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{11,1},'Units', 'pixels','Position',[44,3,160,26],'Parent',p4, 'Callback',{@stager, 'roi',sids});
      uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{12,1},'Units', 'pixels','Position',[229,3,160,26],'Parent',p4,'Callback',{@choice, 12});
      %Panel 05-Segment and DARTEL
      uicontrol('Style','PushButton','HorizontalAlignment','left','String',stage{13,1},'Units', 'pixels','Position',[44,31,160,26],'Parent',p5, 'Callback',{@choice, 13});
@@ -183,17 +200,6 @@ return
 function stager(h, eventdata, rstage, sids)
     close(gcf);
 
-    % Load sids for stages that require them
-    sidstages = {'prep','prep_glm','prep_glm_con','glm','glm_con','con',...
-                 'rfx','voi','roi','seg8','nanat','nfunc','rest'};
-    if isempty(sids)
-        if ismember(rstage,sidstages(1:3))
-            sids = spm12w_getsid(fullfile(pwd,'raw'));
-        elseif ismember(rstage,sidstages(4:end))
-            sids = spm12w_getsid();
-        end
-    end
-    
     switch rstage
         case 'prep'
             p = spm12w_getp;
@@ -215,7 +221,7 @@ function stager(h, eventdata, rstage, sids)
             for sid = sids
                 spm12w_preprocess('sid',sid{1},'para_file',p.para_file);
                 spm12w_glm_compute('sid',sid{1},'glm_file',g.para_file);
-                spm12w_contrasts('sid',sid{1},'glm_file',g.para_file);
+                spm12w_glm_contrast('sid',sid{1},'glm_file',g.para_file);
             end
 
         case 'glm'
@@ -228,27 +234,35 @@ function stager(h, eventdata, rstage, sids)
             g = spm12w_getp('type','glm');
             for sid = sids
                 spm12w_glm_compute('sid',sid{1},'glm_file',g.para_file);
-                spm12w_contrasts('sid',sid{1},'glm_file',g.para_file);
+                spm12w_glm_contrast('sid',sid{1},'glm_file',g.para_file);
             end
         case 'con'
             g = spm12w_getp('type','glm');
             for sid = sids
-                spm12w_contrasts('sid',sid{1},'glm_file',g.para_file);
+                spm12w_glm_contrast('sid',sid{1},'glm_file',g.para_file);
             end
 
         case 'rfx'
-            p = spm12w_getp;
-            for sid = sids
-                spm12w_preprocess('sid',sid{1},'para_file',p.para_file);
-            end
+            g = spm12w_getp('type','glm');
+            spm12w_glm_rfx('sids',sids,'glm_file',g.para_file);       
 
         case 'roi'
-            p = spm12w_getp;
-            for sid = sids
-                spm12w_preprocess('sid',sid{1},'para_file',p.para_file);
-            end
+            roi = spm12w_getp('type','roi');
+            spm12w_roitool('sids',sids,'roi_file',roi.para_file);       
         
         otherwise
             error('not supported')        
     end
+
 return
+
+    % Load sids for stages that require them
+%     sidstages = {'prep','prep_glm','prep_glm_con','glm','glm_con','con',...
+%                  'rfx','voi','roi','seg8','nanat','nfunc','rest'};
+%     if isempty(sids)
+%         if ismember(rstage,sidstages(1:3))
+%             sids = spm12w_getsid(fullfile(pwd,'raw'));
+%         elseif ismember(rstage,sidstages(4:end))
+%             sids = spm12w_getsid();
+%         end
+%     end

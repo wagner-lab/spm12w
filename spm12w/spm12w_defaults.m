@@ -175,12 +175,12 @@ def.nuissance   = 1;  % Include additional nuissance (run constants, constant)
 
 % GLM Model Defaults
 def.ons_ext    = 'txt';   % If no extension leave blank (ie: '';)   
-def.durtime    = 'scans'; % Event duration in 'scans' (default) or 'sec'?
+def.durtime    = 'scans'; % Event duration in 'scans' (default) or 'sec' or 'ms'?
 def.time       = 'scans'; % Onsets specified in 'scans' or 'secs' 
 def.hpf        = Inf;     % HPF inf=no cutoff|otherwise cutoff in secs i.e. 128)                               
 def.autocorr   = 'none';  % Autocorrelation correction (none | 'AR(1) + w')                                   
 def.demean     = 0;       % Demean condition regressors as in SPM99?
-def.orth       = 0;       % Disable w/i trial orth (0) or enable it (1, SPM default) 
+def.orth       = 1;       % Disable w/i trial orth (0) or enable it (1, SPM default) 
 
 % GLM HRF Specifications:
 % OPTIONS:'hrf'
