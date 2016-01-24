@@ -9,13 +9,13 @@
 % spm12w was developed by the Wagner, Heatherton & Kelley Labs
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: August, 2010 | Updated: December, 2015
+% # Author: Dylan Wagner | Created: August, 2010 | Updated: January, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 fprintf('=== Adding paths for spm12/spm12w/tools ... \n');
 
 % spm12 and spm12w path variables (edit these)
-spm12_path  = 'C:\Users\ddw\Dropbox\Matlab\spm12\spm12_6225';
+spm12_path  = 'C:\Users\ddw\Dropbox\Matlab\spm12\spm12_6685';
 spm12w_path = 'C:\Users\ddw\Documents\GitHub\spm12w\spm12w';
 
 % Optional tools paths (edit these, add additional tools to the tools var)
