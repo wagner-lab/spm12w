@@ -89,5 +89,5 @@ else
     spm12w_logger('msg',['[EXCEPTION] Runs do not match on TR or number of ' ... 
                   'slices.'],'level',p.loglevel)
     diary off
-    error('Runs do not match on TR or numdber of slices...')
+    error('Runs do not match on TR or number of slices...')
 end

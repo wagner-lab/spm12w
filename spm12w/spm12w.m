@@ -34,7 +34,7 @@ function spm12w(varargin)
 %       >> spm12w('stage','prep','sids','./auxil/sidlist.mat')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: May, 2015 | Updated: December, 2015
+% # Author: Dylan Wagner | Created: May, 2015 | Updated: January, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -51,7 +51,7 @@ clear functions
 cwd=pwd;
 
 % Check for user using strings instead of cells.
-if ischar(args.sids)
+if ischar(args.sids) && ~isempty(args.sids)
     args.sids = cellstr(args.sids);
 end
 
@@ -203,6 +203,9 @@ function stager(h, eventdata, rstage, sids)
     switch rstage
         case 'prep'
             p = spm12w_getp;
+            if isempty(sids)
+                sids = spm12w_getsid('raw');
+            end      
             for sid = sids
                 spm12w_preprocess('sid',sid{1},'para_file',p.para_file);
             end
