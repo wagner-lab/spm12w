@@ -22,7 +22,7 @@ function p = spm12w_getscanner(varargin)
 %                         './raw/s01/epi_r02.nii.gz'}, p)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: November, 2014 | Updated: January, 2015
+% # Author: Dylan Wagner | Created: November, 2014 | Updated: January, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 args_defaults = struct('epifiles','', 'p','');
@@ -68,12 +68,13 @@ for ses_i = 1:length(args.epifiles)
                   'level', p.loglevel)
 end
 
-% Check the all epi runs have same slices and TR and set sliceorder. 
-if length(unique(tr)) == 1 && length(unique(nslice)) == 1
+% Verify nslice and give excepetion if fail check
+if length(unique(nslice)) == 1
+    % Assign scanner variables
+    p.nslice = unique(nslice);
     p.nses   = length(args.epifiles); % should always work if files are well named
     p.nvols  = nvols;
-    p.tr     = unique(tr);
-    p.nslice = unique(nslice);
+    p.tr     = tr;
     % Determine slice order 
     p.sliceorder=[];
     if strcmp(p.sformula, 'philips')
@@ -86,8 +87,14 @@ if length(unique(tr)) == 1 && length(unique(nslice)) == 1
         p.sliceorder=[1:2:p.nslice 2:2:p.nslice];
     end
 else
-    spm12w_logger('msg',['[EXCEPTION] Runs do not match on TR or number of ' ... 
-                  'slices.'],'level',p.loglevel)
+    spm12w_logger('msg',['[EXCEPTION] Runs do not match number of ' ... 
+                  'slices. Aborting...'],'level',p.loglevel)
     diary off
-    error('Runs do not match on TR or number of slices...')
+    error('Runs do not match on number of slices...')
+end
+
+% Verify TRs and give warning if fail check 
+if length(unique(tr)) ~= 1
+    spm12w_logger('msg',['[WARNING] Runs do not match on TR. Make sure' ... 
+                  ' this is intentional! Proceeding...'],'level',p.loglevel)
 end

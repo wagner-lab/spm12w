@@ -183,20 +183,36 @@ if p.slicetime
     spm12w_logger('msg',p.niceline, 'level',p.loglevel)
     spm12w_logger('msg',sprintf('Slice time correction on subject: %s', p.sid),...
                  'level',p.loglevel)    
-    % Load epi files
-    epifiles = cell(1,p.nses);
-    for ses = 1:p.nses
-        epifile = sprintf('%s_r%02d.nii',p.fmri,ses);
-        epifiles{ses} = fullfile(p.datadir,epifile);
-    end  
-    % Perform slice time correction
-    spm12w_logger('msg',sprintf('Reference slice: %d', p.refslice), ...
-                  'level',p.loglevel)  
-    spm12w_logger('msg',sprintf('Slice time acquisition order: %s', ...
-                  mat2str(p.sliceorder)), 'level',p.loglevel)                
-    TA = p.tr-p.tr/p.nslice;    
-    spm_slice_timing(epifiles,p.sliceorder,p.refslice, ...
-                      [TA/(p.nslice-1) p.tr-TA]);
+    % Slice time correction now allows matching of sessions with different TRs
+    % This complicates things as we have to run slicetime correction
+    % everytime we detect a new TR. Number of sessions = unique(p.tr).
+    for tr = num2cell(unique(p.tr))
+        % custom log message for the rare case when unique(p.tr) > 1
+        if length(unique(p.tr)) > 1
+            spm12w_logger('msg',sprintf(['Slice time correction for sessions ',...
+                      'with tr: %.1f'], tr{1}),'level',p.loglevel)
+        end
+        % Load epi files for files corresponding to the current unique tr      
+        epifiles = cell(1,sum(ismember(p.tr,tr{1})));
+        epi_i = 1;
+        for ses = 1:p.nses
+            if p.tr(ses) == tr{1} 
+                epifile = sprintf('%s_r%02d.nii',p.fmri,ses);
+                epifiles{epi_i} = fullfile(p.datadir,epifile);
+                epi_i = epi_i + 1;
+            end
+        end  
+        % Perform slice time correction
+        spm12w_logger('msg',sprintf('TR for current sessions: %.1f', tr{1}), ...
+                     'level',p.loglevel)  
+        spm12w_logger('msg',sprintf('Reference slice: %d', p.refslice), ...
+                     'level',p.loglevel)  
+        spm12w_logger('msg',sprintf('Slice time acquisition order: %s', ...
+                      mat2str(p.sliceorder)), 'level',p.loglevel)                
+        TA = tr{1}-tr{1}/p.nslice;    
+        spm_slice_timing(epifiles,p.sliceorder,p.refslice, ...
+                        [TA/(p.nslice-1) tr{1}-TA]);                     
+    end    
     spm12w_logger('msg','Slice time correction complete...', 'level',p.loglevel)
     p.fmri = ['a',p.fmri];
 end

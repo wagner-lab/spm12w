@@ -23,7 +23,10 @@ function results = spm12w_stats(varargin)
 % 'zscore' : z-score (i.e., y-mean(y) ./std(ya))
 % 'l1'     : l1 Regression (i.e., Least Absolute Deviation)
 % 'mad_med': Median Absolute Deviation (MAD)
-% 'ttest1' : One-sample t-ttest against zero.
+% 'ttest1' : One-sample t-test against zero.
+% 'ttest2' : Two-sample t-test comparing groups.
+% 'correl' : Correlation, returns r and p.
+% 'chisqp' : Chi-squared test for testing obs against probability distribution
 %
 % Examples:
 %
@@ -32,6 +35,9 @@ function results = spm12w_stats(varargin)
 %
 % Perform L1 Least Absolute Deviation
 %   >> results = spm12w_stats('stat', 'l1', 'y', y, 'x', x)
+%
+% Test an observed distribution against expected probabilities
+%   >> results = spm12w_stats('stat','chisqp','y',obsv,'x',exp_prob)
 %
 % Test code for L1 Regression
 % ---------------------------
@@ -56,7 +62,7 @@ function results = spm12w_stats(varargin)
 % legend('Training Data','L-1 Regression','Least Squares Regression')
 % 
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2013 | Updated: December, 2014
+% # Author: Dylan Wagner | Created: March, 2013 | Updated: February, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -101,6 +107,18 @@ switch args.stat
     case 'correl'
         [rcorr,p] = corrcoef(args.y, args.x);     
         results = struct('r',rcorr(1,2),'p',p(1,2));
+    case 'chisqp'
+        % Check if expected is in percentage
+        if sum(args.x) == 1
+            xexp = sum(args.y) .* args.x;
+        elseif sum(args.x) == 100
+            xexp = sum(args.y) .* args.x/100;
+        end
+        % Calcualte chisq stat and p using chi2cdf
+        chisq = sum((args.y-xexp).^2 ./ xexp);
+        df = length(args.y)-1;
+        p = 1-chi2cdf(chisq,df);
+        results = struct('chisq',chisq,'p',p,'df',df);
 end
 
 % Create significance stars for statistics (ttest1, ttest2, correl)
