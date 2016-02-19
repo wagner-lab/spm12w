@@ -26,6 +26,7 @@ function results = spm12w_stats(varargin)
 % 'ttest1' : One-sample t-test against zero.
 % 'ttest2' : Two-sample t-test comparing groups.
 % 'correl' : Correlation, returns r and p.
+% 'chisq'  : Chi-squared test of independence
 % 'chisqp' : Chi-squared test for testing obs against probability distribution
 %
 % Examples:
@@ -109,14 +110,34 @@ switch args.stat
         results = struct('r',rcorr(1,2),'p',p(1,2));
     case 'chisqp'
         % Check if expected is in percentage
-        if sum(args.x) == 1
+        if sum(args.x)-1 > -1e-6
             xexp = sum(args.y) .* args.x;
-        elseif sum(args.x) == 100
+        elseif sum(args.x)-100 > -1e-6
             xexp = sum(args.y) .* args.x/100;
         end
         % Calcualte chisq stat and p using chi2cdf
         chisq = sum((args.y-xexp).^2 ./ xexp);
         df = length(args.y)-1;
+        p = 1-chi2cdf(chisq,df);
+        results = struct('chisq',chisq,'p',p,'df',df);
+    case 'chisq'
+        % Make table
+        xy = [args.y;args.x];
+        % In case of nan make zero
+        xy(isnan(xy)) = 0;
+        % Calculate means
+        row_sum = sum(xy,2);
+        col_sum = sum(xy);
+        % Calculate expected values
+        xexp = [];
+        for row_i = 1:size(row_sum,1)
+            for col_i = 1:size(col_sum,2)
+                xexp(row_i,col_i) = row_sum(row_i) * col_sum(col_i)/ sum(sum(xy));
+            end
+        end
+        chisq = sum(sum((xy-xexp).^2 ./ xexp));    
+        % Calcualte chisq stat and p using chi2cdf
+        df = (size(row_sum,1)-1)*(size(col_sum,2)-1);   
         p = 1-chi2cdf(chisq,df);
         results = struct('chisq',chisq,'p',p,'df',df);
 end
