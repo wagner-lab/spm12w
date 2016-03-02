@@ -58,7 +58,7 @@ scalf = zeros(nscan,1);
 for i = 1:nscan
     scalf(i) = V(i).private.dat.scl_slope;
 end
-if scalf(1) > 1
+if scalf(1) > 0
     spm12w_logger('msg',['[DEBUG] Data will be scaled prior to slice ' ...
               'noise calculation'],'level',args.loglevel)
 end
@@ -94,13 +94,13 @@ spm12w_logger('msg',sprintf(['[DEBUG] Calculating slice noise for %d ', ...
 for kk=1:nscan  % for every input file
     gv(kk) = spm_global(V(kk));
     [dat1,loc] = spm_read_vols(V(kk),1);  % read with zero masking 
-    dat1 = dat1/scalf(kk);                % Apply scaling
+    dat1 = dat1*scalf(kk);                % Apply scaling
     nn = neigh(kk,:);
     for jj=1:length(nn)    % read some neighbours
         if(isfinite(nn(jj)))  % for good neighbours
             jind = nn(jj);
             [dat2,loc] = spm_read_vols(V(jind),1);  %% read with zero masking
-            dat2 = dat2/scalf(jind);                %% Apply scaling
+            dat2 = dat2*scalf(jind);                %% Apply scaling
             for i=1:nslice
                 slice1 = squeeze(dat1(:,:,i));
                 slice2 = squeeze(dat2(:,:,i));
