@@ -20,7 +20,13 @@ function spm12w_snr(varargin)
 %            potentially be inflated by trends in the data that are usually
 %            removed during GLM estimation. This switch will do detrending 
 %            prior to tSNR calcualtion. This adds considerable processing time. 
-%            (default=0)
+%            (default=0) (AND ISN'T ACTUAL IMPLEMENTED!)
+%
+% scalefig : Flag for scaling data to fit in the display range for showing
+%            figures. This isn't perfect but helps with visualization. The
+%            actual nifti files that are written out are not scaled. This
+%            addresses the issue of different scanners outputting values not
+%            in the range that this script exepcts. (default=1). 
 %
 % loglevel : Optional log level for spm12w_logger corresponding (default=1)
 %
@@ -34,12 +40,13 @@ function spm12w_snr(varargin)
 %   >> spm12w_snr('niifiles', {'./epi_r01.nii', './epi_r02.nii'})
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: November, 2014 | Updated: December, 2014
+% # Author: Dylan Wagner | Created: November, 2014 | Updated: March, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
 args_defaults = struct('niifiles','','outdir',pwd,'sid','',...
-                       'psname','preprocess.ps','detrend',0,'loglevel', 1);
+                       'psname','preprocess.ps','detrend',0,...
+                       'scalefig',1,'loglevel', 1);
 args = spm12w_args('nargs',2, 'defaults', args_defaults, 'arguments', varargin);
 
 % Make outdir if it doesn't exist.
@@ -70,7 +77,7 @@ for ses = 1:size(Vnii,2)
     end
     % Get scaling factor
     scalf  = files(1).private.dat.scl_slope;
-    if scalf > 1
+    if scalf > 0
         spm12w_logger('msg',sprintf(['[DEBUG] Data will be scaled by ' ...
                       '%.2f prior to SNR calculation'], scalf), ...
                       'level',args.loglevel) 
@@ -84,7 +91,7 @@ for ses = 1:size(Vnii,2)
     % Incremental algorithm for rolling mean and variance
     % (saves memory by not preloading all volumes). 
     for i = 1:nvols          
-        data = spm_read_vols(files(i))/scalf; %scale data prior to calc
+        data = spm_read_vols(files(i))*scalf; %scale data prior to calc
         delta = data - avg;
         avg = avg+delta/i;
         datavar = datavar + delta.*(data-avg);
@@ -106,6 +113,16 @@ for ses = 1:size(Vnii,2)
     vol_out.fname = fullfile(args.outdir,sprintf('snr_%s_r%02d.nii', args.sid, ses));
     spm_write_vol(vol_out, snr);
     % Make figures
+    % Normalize average and SD. SNR should not be averaged as it is not scale
+    % dependent. We'll use the same scale for the SD as the average. Seems to
+    % work better when we do that.
+    if args.scalefig
+        spm12w_logger('msg','[DEBUG] Scaling for figure display purposes.', ...
+                      'level',args.loglevel) 
+        scaleavg = max(avg(:))/900;
+        avg = avg/scaleavg;
+        sd = sd/scaleavg;        
+    end
     % Slices (assumes normalized data, these are decent spots)
     slice{1} = squeeze(avg(:,:,20));   stitles{1} = 'Average 1';   sthresh{1} = [10,900];
     slice{2} = squeeze(avg(:,:,24));   stitles{2} = 'Average 2';   sthresh{2} = [10,900];
