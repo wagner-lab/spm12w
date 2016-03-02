@@ -148,7 +148,11 @@ def.boundbox   = [-78 -114 -72;...
                    78 78 84]; %SPM12 default is [-78 -112 -70; 78 76 85]
                               %SPM8 default is [-78 -112 -50; 78 76 85]
                               %Ours accomodates with 3x3x3 and 2x2x2. 
-                              
+
+% Slices noise defaults
+def.noiseth = [5,15]; % Defaults for displaying slice noise. 
+                      % May need tweaking for different scanners.
+
 % Cleanup defaults
 def.cleanup    = 1;  % 0 = keep all files (useful for debugging)
                      % 1 = delete all but the last stage of preprocessing (usually 's')

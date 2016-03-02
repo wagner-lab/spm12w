@@ -550,7 +550,8 @@ if p.slices
     % or else we get focus stolen by slicenoise
     F = spm_figure('CreateWin','Graphics', 'spm12w preprocessing', 'off'); 
     spm12w_slicenoise('niifiles',epifiles,'radata',p.ra,'mask',p.mask, ...
-                      'psname','preprocess.ps','loglevel',p.loglevel);
+                      'psname','preprocess.ps','noiseth',p.noiseth,...
+                      'loglevel',p.loglevel);
     spm12w_logger('msg','Slice noise check complete...', 'level',p.loglevel) 
     % Print then close slice noise figure
     print(F, 'preprocess.ps', '-dpsc2','-painters','-append','-noui')

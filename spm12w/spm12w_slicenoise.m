@@ -16,6 +16,9 @@ function spm12w_slicenoise(varargin)
 % psname   : Name of .ps file containing figures displaying SNR plots.
 %            Default is preprocess.ps
 %
+% noiseth  : Noise thresholds for displaying figures. Might need to be
+%            tweaked according to scanner. (default=[5,15]).
+%
 % loglevel : Optional log level for spm12w_logger corresponding (default=1)
 %
 % Calculates slice-wise differences (current - previous slic) and creates a 
@@ -33,7 +36,7 @@ function spm12w_slicenoise(varargin)
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
-args_defaults = struct('niifiles','','radata','','mask','',...
+args_defaults = struct('niifiles','','radata','','mask','','noiseth',[5,15],...
                        'psname','preprocess.ps','loglevel', 1);
 args = spm12w_args('nargs',4, 'defaults', args_defaults, 'arguments', varargin);
 
@@ -114,8 +117,8 @@ for kk=1:nscan  % for every input file
     noise(:,kk) = nanmean(scan_noise)'; 
 end
 % Make slices figure (now 200% more better!!!)
-th  = 5;  %default was 20 from slices_defaults.m
-wth = 15;  %default was 30 lowering defaults since new coil -DDW Feb/12 
+th  = args.noiseth(1);  %default was 20 from slices_defaults.m
+wth = args.noiseth(2);  %default was 30 lowering defaults since new coil -DDW Feb/12 
 colormap('default');
 subplot(3,1,1)
 imagesc(noise,[0,40])
