@@ -150,7 +150,7 @@ def.boundbox   = [-78 -114 -72;...
                               %Ours accomodates with 3x3x3 and 2x2x2. 
 
 % Slices noise defaults
-def.noiseth = [5,15]; % Defaults for displaying slice noise. 
+def.noiseth = [5,15]; % Defaults for displaying slice noise figures. 
                       % May need tweaking for different scanners.
 
 % Cleanup defaults

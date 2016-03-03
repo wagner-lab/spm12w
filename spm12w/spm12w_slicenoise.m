@@ -16,28 +16,31 @@ function spm12w_slicenoise(varargin)
 % psname   : Name of .ps file containing figures displaying SNR plots.
 %            Default is preprocess.ps
 %
-% noiseth  : Noise thresholds for displaying figures. Might need to be
-%            tweaked according to scanner. (default=[5,15]).
+% noiseth  : Noise thresholds for displaying figures. Might need to be tweaked 
+%            according to scanner. (default=[0.015,0.03]).
 %
 % loglevel : Optional log level for spm12w_logger corresponding (default=1)
 %
 % Calculates slice-wise differences (current - previous slic) and creates a 
 % figure showing changes in overall slice mean. Borrowed from slices_analyse
-% by Antonia Hamilton circa 2006.  
+% by Antonia Hamilton circa 2006. Data is mean centered slice-wise to help
+% account for scanner / data scaling differences, not sure if this is ideal
+% but works well enough.
 %
 % Examples:
 %
 % Calculate slice noise on two runs of data
 %   >> spm12w_slicenoise('niifiles', {'./epi_r01.nii', './epi_r02.nii'},
-%                        'radata', p.ra, 'mask', p.mask)
+%                        'radata', p.ra, 'mask', p.mask, 'noiseth',[0.015,0.03])
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
 % # Author: Dylan Wagner | Created: November, 2014 | Updated: May, 2015
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
-args_defaults = struct('niifiles','','radata','','mask','','noiseth',[5,15],...
-                       'psname','preprocess.ps','loglevel', 1);
+args_defaults = struct('niifiles','','radata','','mask','',...
+                       'noiseth',[5,15],'psname','preprocess.ps',...
+                       'loglevel', 1);
 args = spm12w_args('nargs',4, 'defaults', args_defaults, 'arguments', varargin);
 
 % Setup figure (if it exists, clear it, otherwise make it).
@@ -94,13 +97,14 @@ spm12w_logger('msg',sprintf(['[DEBUG] Calculating slice noise for %d ', ...
 for kk=1:nscan  % for every input file
     gv(kk) = spm_global(V(kk));
     [dat1,loc] = spm_read_vols(V(kk),1);  % read with zero masking 
-    dat1 = dat1*scalf(kk);                % Apply scaling
+    dat1 = dat1/gv(kk);         % Apply scaling
     nn = neigh(kk,:);
     for jj=1:length(nn)    % read some neighbours
         if(isfinite(nn(jj)))  % for good neighbours
             jind = nn(jj);
+            gv2(jj) = spm_global(V(jind));
             [dat2,loc] = spm_read_vols(V(jind),1);  %% read with zero masking
-            dat2 = dat2*scalf(jind);                %% Apply scaling
+            dat2 = dat2/gv2(jj);                %% Apply scaling
             for i=1:nslice
                 slice1 = squeeze(dat1(:,:,i));
                 slice2 = squeeze(dat2(:,:,i));
@@ -119,6 +123,7 @@ end
 % Make slices figure (now 200% more better!!!)
 th  = args.noiseth(1);  %default was 20 from slices_defaults.m
 wth = args.noiseth(2);  %default was 30 lowering defaults since new coil -DDW Feb/12 
+noise = noise*400; % Arbitrary hack to get thresholds in a good spot. 
 colormap('default');
 subplot(3,1,1)
 imagesc(noise,[0,40])
