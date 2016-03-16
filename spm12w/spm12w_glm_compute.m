@@ -79,12 +79,10 @@ else
 end
 
 % Show user the parameters we harvested.
-tmp_nvols = [];
-for i = 1:length(glm.nvols)
-    tmp_nvols = [tmp_nvols, sprintf('nvols(run%d)=%d, ',i,glm.nvols(1))];
+for ses = 1:glm.nses
+    spm12w_logger('msg', sprintf('Run:%d, nvols=%d, TR=%.1f', ses, ...
+                  glm.nvols(ses), glm.tr(ses)), 'level', glm.loglevel);
 end
-spm12w_logger('msg', sprintf('Runs:%d, tr=%.1f, %s', glm.nses, glm.tr, ...
-              tmp_nvols(1:end-2)), 'level', glm.loglevel)
 
 % Adjust nses & nvols to match modeled runs.
 if strcmp(glm.include_run,'all')
@@ -110,7 +108,21 @@ else
     % Adjust nses & nvols to match modeled runs.
     glm.nses = length(glm.include_run);
     glm.nvols = glm.nvols(glm.include_run);
+    % Assign TR to runs to be modeled
+    glm.tr = glm.tr(glm.include_run);
 end
+
+% Check that the runs to be modeled all have same TR
+if length(unique(glm.tr)) > 1
+    spm12w_logger('msg', sprintf(['[EXCEPTION] Runs to be modeled have ', ...
+              'different TRs (%s)'], sprintf('Run %.1f ',glm.tr)), ...
+              'level', glm.loglevel)
+    error('Modeled runs do not all have the same TR...')
+else
+    glm.tr = unique(glm.tr);
+end
+
+% Tell the user what we're up to...
 msg = sprintf('GLM will be calculated on runs: %s', ...
                sprintf('%d(nvols=%d) ',[glm.include_run;glm.nvols]));
 spm12w_logger('msg', msg, 'level', glm.loglevel)

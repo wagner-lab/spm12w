@@ -75,7 +75,7 @@ function ressurect_gui(sids)
     close all
     % Define gui defaults
     % Define color pallet (push this to defaults later)
-    gui.p_bcknd = [75,87,77] ./255;
+    gui.p_bcknd = [206,198,189] ./255;
     gui.p_panel = [141,152,118] ./255;
     gui.p_prepro = [175,66,10] ./255;
     
@@ -96,7 +96,7 @@ function ressurect_gui(sids)
                       'Position',gui.pos_gui, ...
                       'color', gui.p_bcknd); 
     % Set gui image
-    titleimage = axes('Units','pixels','position',[2,536,550,107]); 
+    titleimage = axes('Units','pixels','position',[2,538,550,107]); 
     image(imread(gui.imgfile)); 
     axis('off','image') 
     % Define Panels
@@ -200,12 +200,23 @@ return
 function stager(h, eventdata, rstage, sids)
     close(gcf);
 
+    % Load sids for stages that require them
+    sidstages = {'prep','prep_glm','prep_glm_con','glm','glm_con','con',...
+                 'rfx','voi','roi','seg8','nanat','nfunc','rest'};
+    if isempty(sids)
+        if ismember(rstage,sidstages(1:3))
+            sids = spm12w_getsid(fullfile(pwd,'raw'));
+        elseif ismember(rstage,sidstages(4:end))
+            sids = spm12w_getsid();
+        end
+        if isempty(sids)
+            error('No subjects selected...');
+        end  
+    end
+    
     switch rstage
         case 'prep'
             p = spm12w_getp;
-            if isempty(sids)
-                sids = spm12w_getsid('raw');
-            end      
             for sid = sids
                 spm12w_preprocess('sid',sid{1},'para_file',p.para_file);
             end
@@ -258,14 +269,3 @@ function stager(h, eventdata, rstage, sids)
     end
 
 return
-
-    % Load sids for stages that require them
-%     sidstages = {'prep','prep_glm','prep_glm_con','glm','glm_con','con',...
-%                  'rfx','voi','roi','seg8','nanat','nfunc','rest'};
-%     if isempty(sids)
-%         if ismember(rstage,sidstages(1:3))
-%             sids = spm12w_getsid(fullfile(pwd,'raw'));
-%         elseif ismember(rstage,sidstages(4:end))
-%             sids = spm12w_getsid();
-%         end
-%     end
