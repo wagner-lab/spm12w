@@ -212,7 +212,8 @@ if glm.design_only == 0
     % set a hidden figure to visible). 
     set(F,'visible','off');
     % Print looks better using opengl for design matrices. Keep an eye on
-    % this in case it fails on other platforms.
+    % this in case it fails on other platforms. opengl throws running in parfor
+    % but completed anyway.
     print(F, 'glm.ps', '-dpsc2','-opengl','-append','-noui') 
     
     % Demean design if user requested

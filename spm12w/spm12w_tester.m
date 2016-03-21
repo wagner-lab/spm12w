@@ -9,6 +9,13 @@ function spm12w_tester(varargin)
 % sids:  Cell array of subject ids. If left unspecified, a dialog box 
 %        will appear asking the user to select subjects.
 %
+% parloop: Optional input (0 or 1) to enable parallel processing. 
+%          Default is no parallel processing (default = 0). 
+%
+% parcores: Optional input to specify the size of the parallel processing pool.
+%           Default value is 4 cpu cores but can range from 2 to 64. Caution
+%           should be used when enabling this on a shared server environment.
+%
 % This testing function is designed to run a new installation of spm12w
 % through most of its core functions to ensure everything is functioning 
 % properly. It is also useful for ensuring that new changes to the codebase 
@@ -35,17 +42,22 @@ function spm12w_tester(varargin)
 %  
 %       >> spm12w_tester('tests',[1,2,3],'sids',{'s01','s02'})
 %
+% To run spm12w_tester on tests 1,4,& 5 with parallel processing
+%  
+%       >> spm12w_tester('tests',[1,4:5],'sids',{'s01','s02','s03'}, ...
+%          'parloop',1,'parcores',3)
+%
 % To run spm12w_tester on all tests while manually selecting subjects, call
 % it without argument:
 %    
 %       >> spm12w_tester
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: February, 2013 | Updated: June, 2015
+% # Author: Dylan Wagner | Created: February, 2013 | Updated: March, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
-args_defaults = struct('tests','all', 'sids','');
+args_defaults = struct('tests','all', 'sids','','parloop',0, 'parcores', 4);
 args = spm12w_args('nargs',0, 'defaults', args_defaults, 'arguments', varargin);
 
 % If tests is keyword 'all' set tests to tests 1 to 9
@@ -84,10 +96,10 @@ for testcase = args.tests
             % Preprocessing
             % We only need to preprocess functional datasets once for GLM &
             % Dartel. Dartel will pick up after basic prepro is complete.
-            for sid = args.sids
-                spm12w_preprocess('sid',sid{1},'para_file','p_tutorial.m');
-            end
-            
+            spm12w('stage','prep','sids',args.sids, 'para_file',...
+                   'p_tutorial.m','parloop',args.parloop,...
+                   'parcores',args.parcores);
+               
         case 2 
             % Segmentation of anatomical images using p_tutorial_dartel.m
             for sid = args.sids
@@ -110,19 +122,19 @@ for testcase = args.tests
         case 4
             % 1st level GLM 
             % GLM will be built based on parameters file then estimated
-            for sid = args.sids
-                spm12w_glm_compute('sid',sid{1},'glm_file','glm_tutorial.m');
-            end
+            spm12w('stage','glm','sids',args.sids, 'para_file',...
+                   'glm_tutorial.m','parloop',args.parloop,...
+                   'parcores',args.parcores);
 
         case 5
             % 1st level contrasts
             % Using the GLM estimated in the previous step, a series of
             % contrast vectors will generated from the parameters file
             % and computed. 
-            for sid = args.sids
-                spm12w_glm_contrast('sid',sid{1},'glm_file','glm_tutorial.m');
-            end
-            
+            spm12w('stage','con','sids',args.sids, 'para_file',...
+                   'glm_tutorial.m','parloop',args.parloop,...
+                   'parcores',args.parcores);
+
         case 6 
             % 2nd level rfx analysis 
             % Based on the parameters file a number of 1st level contrasts
