@@ -3,8 +3,8 @@ function parameters = spm12w_getp(varargin)
 %
 % Input
 % -----
-% type: The type of parameter file being loaded. Options are p,d,r,glm,roi,voi.
-%       Default is p. 
+% type: The type of parameter file being loaded. Options are: p,glm,roi,voi
+%       and des. Default is p. 
 %
 % sid: Optional input variable to specify the subject ID for the current 
 %      parameters instance. This will fill in any subject specific paths
@@ -44,7 +44,7 @@ function parameters = spm12w_getp(varargin)
 %                     'para_file','scripts/glm_h8tjazz.m')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: May, 2012 | Updated: December, 2015
+% # Author: Dylan Wagner | Created: May, 2012 | Updated: April, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -92,13 +92,14 @@ p_.para_file = args.para_file;
 
 % Set potentially missing path variables to empty strings or else loading
 % defaults will cause errors due to missing variables.
-
 if strcmp(args.type,'p')
     zerofields = {'glm_name','rfx_name','ons_dir', 'roi_name'}; 
-elseif strcmp(args.type,'roi')
-    zerofields = {'rfx_name','ons_dir', 'prep_name'};
+elseif strcmp(args.type,'roi') 
+    zerofields = {'rfx_name','ons_dir','prep_name'};
 elseif strcmp(args.type,'glm')
     zerofields = {'roi_name'}; 
+elseif strcmp(args.type,'des')
+    zerofields = {'rfx_name','ons_dir','prep_name','glm_name','roi_name'};
 else
     zerofields = {};
 end

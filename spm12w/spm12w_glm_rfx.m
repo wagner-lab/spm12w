@@ -4,7 +4,7 @@ function spm12w_glm_rfx(varargin)
 % Inputs
 % ------
 % glm_file: File specifying the parameters for glm design and contrasts
-%           (e.g., 'glm_tutorial.m'). If the path is left unspecified,
+%           (e.g., 'glm_tutorial.m'). If the full path is left unspecified,
 %           spm12w_glm will look in the scripts directory.
 %
 % sids:     A cell array of Subject IDs for random effects analysis. If

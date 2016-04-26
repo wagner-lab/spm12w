@@ -6,7 +6,7 @@ function spm12w_preprocess(varargin)
 % sid:            Subject ID of subject to be preprocessed (e.g., 's01')
 %
 % parameter_file: File specifying the parameters for preprocessing (e.g.,
-%                 'p_tutorial.m'). If the path is left unspecified, 
+%                 'p_tutorial.m'). If the full path is left unspecified, 
 %                 spm12w_preprocess will look in the scripts directory.
 %                 <optional>
 %

@@ -3,8 +3,8 @@ function spm12w_prepare(varargin)
 %
 % Inputs
 % ------
-% rawformat:    Format of raw data to prepare. Options are 'nifti' or
-%               'parrec'. Default: 'parrec'
+% rawformat:    Format of raw data to prepare. Options are 'nifti', 
+%               'parrec' (Philips) or 'dicom' (Siemens). Default: 'parrec'
 %
 % Converts either raw philips format par/rec files into nifti format files
 % or raw nifti files archived from the scanner, renaming, anonymizing and
@@ -40,7 +40,7 @@ function spm12w_prepare(varargin)
 % -ddw 2012
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2013 | Updated: December, 2014
+% # Author: Dylan Wagner | Created: March, 2013 | Updated: April, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Input check

@@ -6,7 +6,7 @@ function spm12w_glm_compute(varargin)
 % sid:      Subject ID of subject for glm computation (e.g., 's01')
 %
 % glm_file: File specifying the parameters for glm design and contrasts
-%           (e.g., 'glm_tutorial.m'). If the path is left unspecified,
+%           (e.g., 'glm_tutorial.m'). If the full path is left unspecified,
 %           spm12w_glm will look in the scripts directory. <optional>
 %
 % spm12w_glm_compute will gather onset files and specify a design matrix 

@@ -142,7 +142,7 @@ function ressurect_gui(sids, para_file)
    global gui   
    close all
    % Define gui positions
-   gui.pos_gui = [50,400,552,576]; %Position to place gui figure (X,Y,W,H)
+   gui.pos_gui = [50,400,552,658]; %Position to place gui figure (X,Y,W,H)
    % Generate gui
    gui.spm12wfig = figure('Name',gui.name, ...
                      'MenuBar','none', ...
@@ -153,14 +153,14 @@ function ressurect_gui(sids, para_file)
                      'Position',gui.pos_gui, ...
                      'color', gui.p_bcknd); 
    % Set gui image
-   titleimage = axes('Units','pixels','position',[2,498,550,107]); 
+   titleimage = axes('Units','pixels','position',[2,581,550,107]); 
    image(imread(gui.imgfile)); 
    axis('off','image') 
    % Define Panels
-   ypos = 442; %Sets starting Y position. All other is relative to this
+   ypos = 524; %Sets starting Y position. All other is relative to this
    % Main panel
    p0 = uipanel('BackgroundColor',(gui.p_panel),'Units','pixels',...
-                'Position',[52,0,450,528],'BorderWidth',2,...
+                'Position',[52,6,450,600],'BorderWidth',2,...
                 'BorderType','line','HighlightColor',gui.p_border); 
    % Preprocessing Panel
    p1 = uipanel('BackgroundColor',(gui.p_panel),'Units','pixels',...
@@ -187,15 +187,20 @@ function ressurect_gui(sids, para_file)
                 'Position',[60, (ypos-288),435,58],'title',...
                 'VOI Extraction & PPI Regressor Maker', ...
                 'HighlightColor','black','BorderType','line', ...
-                'ForegroundColor',gui.p_title1); 
-   % Utilities
+                'ForegroundColor',gui.p_title1);            
+   % Design search & build
    p6 = uipanel('BackgroundColor',gui.p_panel,'Units','pixels',...
                 'Position',[60, (ypos - 370),435,78],'title',...
+                'Experiment Design Helper','HighlightColor','black',...
+                'BorderType','line','ForegroundColor',gui.p_title2);         
+   % Utilities
+   p7 = uipanel('BackgroundColor',gui.p_panel,'Units','pixels',...
+                'Position',[60, (ypos - 452),435,78],'title',...
                 'Utilities','HighlightColor','black',...
                 'BorderType','line','ForegroundColor',gui.p_title2);
    % Parfor switch
-   p7 = uipanel('BackgroundColor',gui.p_panel,'Units','pixels',...
-                'Position',[60, (ypos-432),435,58],'title',...
+   p8 = uipanel('BackgroundColor',gui.p_panel,'Units','pixels',...
+                'Position',[60, (ypos-514),435,58],'title',...
                 'Matlab Parallel Computing Toolbox',...
                 'HighlightColor','black','BorderType','line',...
                 'ForegroundColor',gui.p_title3);    
@@ -214,14 +219,14 @@ function ressurect_gui(sids, para_file)
           'WIP-Normalize Anat','nanat';
           'WIP-Normalize EPI','nfunc';
           'WIP-VOI Extraction','voi';
-          'WIP-PPI Reg Maker','ppi';     
+          'WIP-PPI Reg Maker','ppi';             
+          'Design Search','dsearch';
+          'Design Check','dcheck';
+          'Design Build','dbuild'  
           'ART Outlier Detect','art';
           'Onset Maker','onsmk';
           'Prep Study','prepare';
-          'WIP-Cluster Sims','alphasim';
-          'WIP-Design Search','dsearch';
-          'WIP-Design Check','dcheck';
-          'WIP-Design Build','dbuild'};
+          'WIP-Cluster Sims','alphasim'};
     radio={'[ON] Parallel';'[OFF] Serial';'CPU Cores:'};
     %Panel 01-Preprocessing
     uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{1,1},'Units', 'pixels','Position',[44,34,160,26],'Parent',p1,'Callback',{@stager, 'prep',sids, para_file});
@@ -243,13 +248,17 @@ function ressurect_gui(sids, para_file)
     %Panel 05-VOI Extraction & PPI Regressor Maker
     uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{14,1},'Units', 'pixels','Position',[44,10,160,26],'Parent',p5, 'Callback',{@stager, 'voi',sids});
     uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{15,1},'Units', 'pixels','Position',[229,10,160,26],'Parent',p5,'Callback',{@stager, 'ppi',sids});
-    %Panel 06-Utilities
-    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{16,1},'Units', 'pixels','Position',[44,34,160,26],'Parent',p6, 'Callback',{@stager, 'art',sids});
-    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{17,1},'Units', 'pixels','Position',[229,34,160,26],'Parent',p6, 'Callback',{@stager, 'onsmk',sids});
-    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{18,1},'Units', 'pixels','Position',[44,5,160,26],'Parent',p6, 'Callback',{@stager, 'prepare',sids});
-    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{19,1},'Units', 'pixels','Position',[229,5,160,26],'Parent',p6,'Callback',{@stager, 'alphasim',sids});    
+    %Panel 06-Experiment Design Helper 
+    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{16,1},'Units', 'pixels','Position',[44,34,160,26],'Parent',p6, 'Callback',{@stager, 'dsearch','',para_file});
+    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{17,1},'Units', 'pixels','Position',[229,34,160,26],'Parent',p6, 'Callback',{@stager, 'dcheck','',para_file});
+    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{18,1},'Units', 'pixels','Position',[134,5,160,26],'Parent',p6, 'Callback',{@stager, 'dbuild','',para_file});   
+    %Panel 07-Utilities
+    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{19,1},'Units', 'pixels','Position',[44,34,160,26],'Parent',p7, 'Callback',{@stager, 'art',sids});
+    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{20,1},'Units', 'pixels','Position',[229,34,160,26],'Parent',p7, 'Callback',{@stager, 'onsmk',sids});
+    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{21,1},'Units', 'pixels','Position',[44,5,160,26],'Parent',p7, 'Callback',{@stager, 'prepare',sids});
+    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{22,1},'Units', 'pixels','Position',[229,5,160,26],'Parent',p7,'Callback',{@stager, 'alphasim',sids});    
     %Set radio buttons for parfor
-    par_bg = uibuttongroup(p7,'Units','pixels','Position',[10,8,420,30],'BorderType','line','HighlightColor',gui.p_border);
+    par_bg = uibuttongroup(p8,'Units','pixels','Position',[10,8,420,30],'BorderType','line','HighlightColor',gui.p_border);
     uicontrol(par_bg,'Style','text','String',radio{3},'Position',[230,5,100,16],'tag','parcoretext');
     handles.cores = uicontrol(par_bg,'Style','edit','String',gui.parcores,'Position',[322,4,40,20],'tag','parcores','Callback',{@radio_clbk});
     uicontrol(par_bg,'Style','radiobutton','String',radio{1},'Position',[6,6,110,16],'Value',0,'tag','paron','Callback',{@radio_clbk, handles});
@@ -296,9 +305,10 @@ function stager(h, eventdata, rstage, sids, para_file)
     con_stages = {'prep_glm_con','glm_con','con'};        
     rfx_stages = {'rfx'};
     roi_stages = {'roi'};
+    design_stages = {'dsearch','dcheck','dbuild'};
     
     % Load sids for sid_stages
-    if isempty(sids)
+    if ismember(rstage,sid_stages)
         if ismember(rstage,sid_stages(1:3))
             sids = spm12w_getsid(fullfile(pwd,'raw'));
         elseif ismember(rstage,sid_stages(4:end))
@@ -309,7 +319,7 @@ function stager(h, eventdata, rstage, sids, para_file)
         end  
     end
     
-    % Load para files for p_stages, glm_stages and roi_stages.
+    % Load para files for p_stages, glm_stages, roi_stages or design_stages
     if isempty(para_file)
         if ismember(rstage, p_stages)
             p = spm12w_getp;
@@ -319,6 +329,9 @@ function stager(h, eventdata, rstage, sids, para_file)
         end
         if ismember(rstage, roi_stages)
             roi = spm12w_getp('type','roi');
+        end
+        if ismember(rstage, design_stages)
+            des = spm12w_getp('type','des');
         end
     else
         % Loop through cell array of para files to load each one in
@@ -401,7 +414,16 @@ function stager(h, eventdata, rstage, sids, para_file)
             spm12w_glm_rfx('sids',sids,'glm_file',glm.para_file);       
 
         case 'roi'
-            spm12w_roitool('sids',sids,'roi_file',roi.para_file);       
+            spm12w_roitool('sids',sids,'roi_file',roi.para_file);    
+        
+        case 'dsearch'
+            spm12w_designtool('type','search','des_file',des.para_file);
+        
+        case 'dcheck'
+            spm12w_designtool('type','check','des_file',des.para_file);
+        
+        case 'dbuild'
+            spm12w_designtool('type','build','des_file',des.para_file);
                
     end
     spm12w_logger('msg',gui.niceline)
