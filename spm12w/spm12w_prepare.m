@@ -1,13 +1,17 @@
 function spm12w_prepare(varargin)
-% spm12w_prepare(scannerid, rawformat)
+% spm12w_prepare(scannerid, sid, rawformat)
 %
 % Inputs
 % ------
 % scannerid: Filename of archived raw scanner data to be "prepared" for spm12w.
 %            If left unspecified, then spm12w_prepare will open a window
 %            allowing the user to select the scannerid to prepare based on the
-%            information found in the subid_list.txt file (see spm12w wiki
-%            for more information on this file). 
+%            information found in the subid_list.txt or subid_list file 
+%            (see spm12w wiki for more information on this file). 
+%
+% sid:       sid name that the raw scanner data will be renamed to during
+%            conversion. This corresponds to the subject identifier to be used
+%            for this study (e.g., s01, s02, s03, etc.). 
 %
 % rawformat: Format of raw data to prepare. Options are 'nifti', 'parrec' 
 %            (Philips) or 'dicom' (Siemens). If left unspecified,
@@ -55,7 +59,9 @@ function spm12w_prepare(varargin)
 % With arguments, spm12w prepare the specified archive files and convert
 % according to the specified rawformat. If the subid_list.txt file contains
 % a rawformat, the argument provided here will override that format. Filenames
-% do not need to include the dicom/parrec/nifti prefix (see example below).
+% do not need to include the dicom/parrec/nifti prefix (see example below). 
+%
+% This case is useful if you have not yet made a subid_list file. 
 %
 %   >> spm12w_prepare('scannerid',{'01jan16aa',01jan16bb'}, ...
 %                     'sid', 's01','s02'},'rawformat','dicom')
@@ -72,19 +78,19 @@ args = spm12w_args('nargs',0, 'defaults',arg_defaults, 'arguments',varargin);
 % Paths
 root = pwd;
 archdir = fullfile(root, 'arch');
-sidfile = fullfile(archdir, 'subid_list.txt');
 rawdir = fullfile(root, 'raw');
 
 if isempty(args.scannerid) && isempty(args.sid) && isempty(args.rawformat)
     % Load the subid_list.txt file
-
-    % Check that we are in the study's root directory and that files exists
-    if ~exist(sidfile, 'file') 
-        error(['I can''t seem to find the subid_list.txt file in the arch '...
-            'directory. Are you sure it exists and that %s is the study ' ...
-            'root directory?'], root)
+    if exist(fullfile(archdir, 'subid_list.txt'),'file')
+        sidfile = fullfile(archdir, 'subid_list.txt');
+    elseif exist(fullfile(archdir, 'subid_list'),'file')
+        sidfile = fullfile(archdir, 'subid_list');
+    else
+        error(['I can''t seem to find the subid_list file in the arch '...
+               'directory. Are you sure it exists and that %s is the study ' ...
+               'root directory?'], root)
     end
-
     % Load subjects and sids from subid_list.txt file
     filename = sidfile;
     formatSpec = '%s%s%[^\n\r]';
