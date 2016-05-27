@@ -9,29 +9,30 @@
 % spm12w was developed by the Wagner, Heatherton & Kelley Labs
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: August, 2010 | Updated: January, 2016
+% # Author: Dylan Wagner | Created: August, 2010 | Updated: May, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 fprintf('=== Adding paths for spm12/spm12w/tools ... \n');
 
 % spm12 and spm12w path variables (edit these)
-spm12_path  = 'C:\Users\ddw\Dropbox\Matlab\spm12\spm12_6685';
-spm12w_path = 'C:\Users\ddw\Documents\GitHub\spm12w\spm12w';
+spm12_path  = '/lab/opt/matlab/spm12_6685';
+spm12w_path = '/lab/opt/matlab/spm12w/spm12w';
 
 % Optional tools paths (edit these, add additional tools to the tools var)
-tools_path   = 'C:\Users\ddw\Dropbox\Matlab\spm12\tools\';
+tools_path   = '/lab/opt/matlab/tools';
 tools{1} = 'motionfingerprint_1.5.2'; % http://www.medizin.uni-tuebingen.de/kinder/en/research/neuroimaging/software/
 tools{2} = 'PhysIO_r534'; % http://www.translationalneuromodeling.org/tnu-checkphysretroicor-toolbox/
 tools{3} = 'mni2tal'; % http://imaging.mrc-cbu.cam.ac.uk/downloads/MNI2tal/
 tools{4} = 'r2agui_2.7'; % http://sourceforge.net/projects/r2agui/
-tools{5} = 'xjview_8.12'; % http://www.alivelearn.net/xjview8/download/
+tools{5} = 'dicm2nii'; %http://www.mathworks.com/matlabcentral/fileexchange/42997-dicom-to-nifti-converter--nifti-tool-and-viewer 
+tools{6} = 'xjview_8.12'; % http://www.alivelearn.net/xjview8/download/
 
 % Optional ghostscript path (edit this to point local GS installation)
 % Matlab 2015b no longer ships with ghostscript, thus we need to specify
 % local path to GS installation.
-% If using Maltab < 2014 you may leave this blank.
-gspath = 'C:\Program Files\gs\gs9.18\bin\';
-
+% If using Maltab < 2014 or Linux you may leave this blank.
+%gspath = 'C:\Program Files\gs\gs9.18\bin\';
+gspath = '';
 % Add spm paths & path to ghoscript
 addpath(spm12_path, spm12w_path, gspath)
 
