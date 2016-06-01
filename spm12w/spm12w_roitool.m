@@ -56,7 +56,7 @@ function roidata = spm12w_roitool(varargin)
 %                        'spec',{[30,30,21,8]; [22,22,19,6]})
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: January, 2010 | Updated: April, 2015
+% # Author: Dylan Wagner | Created: January, 2010 | Updated: May, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -87,38 +87,37 @@ spm12w_dirsetup('dirtype','roi','params',roi);
 % Parse roi specs, override specs in roi file if custom specs provided
 if isempty(args.spec)
     % Check for custom spec csv file and append to roi structure if it exists.
-    if exist(fullfile(roi.roispecdir,roi.spec_file),'file')
+    if exist(fullfile(roi.roispecdir,roi.spec_file),'file') == 2
         spm12w_logger('msg',sprintf('Loading roi specs from csv file: %s',...
             roi.spec_file),'level',roi.loglevel)
         % read in csv as mixed data cell (can't use xlsread on linux so ...)
         csvspec = spm12w_readcsv('csvfile',fullfile(roi.roispecdir,roi.spec_file));
-        
-    end
-    % Parse the csv file
-    roistruct = struct();
-    for csv_row = 2:size(csvspec,1)
-        fieldname = csvspec{csv_row,1};
-        if isnumeric(csvspec{csv_row,2}) && ~isempty(csvspec{csv_row,2})
-            spec = [csvspec{csv_row,2:end}];
+        % Parse the csv file
+        roistruct = struct();
+        for csv_row = 2:size(csvspec,1)
+            fieldname = csvspec{csv_row,1};
+            if isnumeric(csvspec{csv_row,2}) && ~isempty(csvspec{csv_row,2})
+                spec = [csvspec{csv_row,2:end}];
+            else
+                % Must be nifti mask string, find column containing string
+                stridx = find(cellfun(@ischar,csvspec(csv_row,2:end)));
+                spec = [csvspec{csv_row,stridx+1}];
+            end        
+            roistruct.(fieldname) = spec;
+        end
+        % Append to existing roi specs. If there are none, make it. 
+        if isfield(roi,'roi')
+            spm12w_logger('msg',['[DEBUG] Merging roi specs from csv ',...
+                'and roi parameters files.'],'level',roi.loglevel)
+            % add fields of roistruct to roi.roi. Matlab has no direct meanss of
+            % merging structures, so this requires a little effort.
+            roifieldnames = [fieldnames(roi.roi); fieldnames(roistruct)];
+            roi.roi = cell2struct([struct2cell(roi.roi); struct2cell(roistruct)],...
+                                  roifieldnames, 1);      
         else
-            % Must be nifti mask string, find column containing string
-            stridx = find(cellfun(@ischar,csvspec(csv_row,2:end)));
-            spec = [csvspec{csv_row,stridx+1}];
-        end        
-        roistruct.(fieldname) = spec;
+            roi.roi = roistruct;
+        end  
     end
-    % Append to existing roi specs. If there are none, make it. 
-    if isfield(roi,'roi')
-        spm12w_logger('msg',['[DEBUG] Merging roi specs from csv ',...
-            'and roi parameters files.'],'level',roi.loglevel)
-        % add fields of roistruct to roi.roi. Matlab has no direct meanss of
-        % merging structures, so this requires a little effort.
-        roifieldnames = [fieldnames(roi.roi); fieldnames(roistruct)];
-        roi.roi = cell2struct([struct2cell(roi.roi); struct2cell(roistruct)],...
-                              roifieldnames, 1);      
-    else
-        roi.roi = roistruct;
-    end  
 else
     spm12w_logger('msg',sprintf(['Custom roi specs provided, overriding ',...
               'roi specs in file: %s'],spm_str_manip(roi.para_file,'t')),...
@@ -244,7 +243,7 @@ spm12w_logger('msg',sprintf('Computing basic statistics on data in: %s',...
               [roi.roi_name,'.txt']),'level',roi.loglevel);
 
 % Load and parse the vars file if it exists
-if exist(fullfile(roi.roispecdir,roi.var_file),'file')
+if exist(fullfile(roi.roispecdir,roi.var_file),'file') == 2
     spm12w_logger('msg',sprintf('Loading roi variables from csv file: %s',...
         roi.spec_file),'level',roi.loglevel)
     % read in csv as mixed data cell
