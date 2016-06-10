@@ -225,7 +225,7 @@ function ressurect_gui(sids, para_file)
           'Design Build','dbuild'  
           'ART Outlier Detect','art';
           'Onset Maker','onsmk';
-          'Prep Study','prepare';
+          'Prepare Study','prepare';
           'WIP-Cluster Sims','alphasim'};
     radio={'[ON] Parallel';'[OFF] Serial';'CPU Cores:'};
     %Panel 01-Preprocessing
@@ -255,7 +255,7 @@ function ressurect_gui(sids, para_file)
     %Panel 07-Utilities
     uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{19,1},'Units', 'pixels','Position',[44,34,160,26],'Parent',p7, 'Callback',{@stager, 'art',sids});
     uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{20,1},'Units', 'pixels','Position',[229,34,160,26],'Parent',p7, 'Callback',{@stager, 'onsmk',sids});
-    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{21,1},'Units', 'pixels','Position',[44,5,160,26],'Parent',p7, 'Callback',{@stager, 'prepare',sids});
+    uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{21,1},'Units', 'pixels','Position',[44,5,160,26],'Parent',p7, 'Callback',{@stager, 'prepare','',''});
     uicontrol('Style','PushButton','BackgroundColor', gui.p_ui,'HorizontalAlignment','left','String',stage{22,1},'Units', 'pixels','Position',[229,5,160,26],'Parent',p7,'Callback',{@stager, 'alphasim',sids});    
     %Set radio buttons for parfor
     par_bg = uibuttongroup(p8,'Units','pixels','Position',[10,8,420,30],'BorderType','line','HighlightColor',gui.p_border);
@@ -298,6 +298,7 @@ function stager(h, eventdata, rstage, sids, para_file)
     end
 
     % Load sids and para_files for stages that require them
+    prepare_stage = {'prepare'};
     sid_stages = {'prep','prep_glm','prep_glm_con','glm','glm_con','con',...
                  'rfx','roi'};
     p_stages   = {'prep','prep_glm','prep_glm_con'};
@@ -306,7 +307,15 @@ function stager(h, eventdata, rstage, sids, para_file)
     rfx_stages = {'rfx'};
     roi_stages = {'roi'};
     design_stages = {'dsearch','dcheck','dbuild'};
-    
+        
+    % Get the inputs for prepare stage.
+    if ismember(rstage,prepare_stage)
+        [scannerlist, sids, rawformats] = spm12w_prepare_csvparser();
+        if isempty(sids)
+            error('No subjects selected...');
+        end  
+    end
+       
     % Load sids for sid_stages
     if ismember(rstage,sid_stages)
         if ismember(rstage,sid_stages(1:3))
@@ -354,10 +363,35 @@ function stager(h, eventdata, rstage, sids, para_file)
     % 1:length(x)
     
     % Enable to the parallel processing pool if necessary
-    if gui.parloop == 1 && ismember(rstage, [p_stages,glm_stages,con_stages])
-        guipool = parpool('local',gui.parcores);
+    if gui.parloop == 1 && ismember(rstage, [prepare_stage, p_stages,glm_stages,con_stages])
+        delete(gcp('nocreate')) %delete any leftover pools from crash
+        %Don't assign more cores than sids to loop over.
+        if length(sids) < gui.parcores
+            spm12w_logger('msg','More cores than jobs requested, adjusting numbers of cores...')
+            spm12w_logger('msg',sprintf('Number of cores is now: %d...', length(sids)))
+            guipool = parpool('local',length(sids));
+        else
+            guipool = parpool('local',gui.parcores);
+        end
     end
-    
+        
+    % For preparing data
+    if ismember(rstage, prepare_stage)
+        if gui.parloop == 1
+            spm12w_logger('msg',sprintf(['[DEBUG] Starting parallel ',...
+                          'processing on %d cores...'],gui.parcores))
+            parfor sid_i = 1:length(sids)
+                spm12w_prepare('scannerid',scannerlist{sid_i}, ...
+                               'sid', sids{sid_i},'rawformat',rawformats{sid_i})
+            end
+        else
+            for sid_i = 1:length(sids)
+                spm12w_prepare('scannerid',scannerlist{sid_i}, ...
+                               'sid', sids{sid_i},'rawformat',rawformats{sid_i})
+            end
+        end   
+    end
+       
     % For preprocessing
     if ismember(rstage, p_stages)
         if gui.parloop == 1
@@ -404,8 +438,8 @@ function stager(h, eventdata, rstage, sids, para_file)
     end
     
     % Close the parallel processing pool if it was opened
-    if gui.parloop == 1 && ismember(rstage, [p_stages,glm_stages,con_stages])
-        delete(guipool)
+    if gui.parloop == 1 && ismember(rstage, [prepare_stage,p_stages,glm_stages,con_stages])
+         delete(guipool) %remove any parpools
     end
     
     % For everything else there is no parfor or for looping over sids

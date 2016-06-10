@@ -64,7 +64,7 @@ function spm12w_prepare(varargin)
 % This case is useful if you have not yet made a subid_list file. 
 %
 %   >> spm12w_prepare('scannerid',{'01jan16aa',01jan16bb'}, ...
-%                     'sid', 's01','s02'},'rawformat','dicom')
+%                     'sid', {'s01','s02'},'rawformat','dicom')
 %
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
@@ -81,46 +81,10 @@ archdir = fullfile(root, 'arch');
 rawdir = fullfile(root, 'raw');
 
 if isempty(args.scannerid) && isempty(args.sid) && isempty(args.rawformat)
-    % Load the subid_list.txt file
-    if exist(fullfile(archdir, 'subid_list.txt'),'file')
-        sidfile = fullfile(archdir, 'subid_list.txt');
-    elseif exist(fullfile(archdir, 'subid_list'),'file')
-        sidfile = fullfile(archdir, 'subid_list');
-    else
-        error(['I can''t seem to find the subid_list file in the arch '...
-               'directory. Are you sure it exists and that %s is the study ' ...
-               'root directory?'], root)
-    end
-    % Load subjects and sids from subid_list.txt file
-    filename = sidfile;
-    formatSpec = '%s%s%[^\n\r]';
-    fid = fopen(filename, 'r');
-    subidArray = textscan(fid, formatSpec, 'Delimiter', ',');
-    fclose(fid);
-
-    % Set subjects, sids and rawformat to approriate entries in subidArray.
-    % transpose to get cell array size to match args.scannerid & args.rawformat.
-    scannerlist = deblank(subidArray{1})';
-    sids = deblank(subidArray{2})';
-    rawformats = deblank(subidArray{3})';
-
-    % Allow user to select the sids they want
-    if isempty(args.scannerid)
-        scanneridx = listdlg('PromptString', 'Select archive(s):', ...
-                              'SelectionMode','multiple','ListString',scannerlist);   
-    else
-        scanneridx = find(ismember(scannerlist, args.scannerid));    
-    end
-
-    % reassign cell arrays according to the idx found above.
-    scannerlist = scannerlist(scanneridx);   
-    sids = sids(scanneridx);     
-    rawformats = rawformats(scanneridx); 
-    % If user supplied rawformat arg, then replace rawformat harvested from 
-    % subid_list.txt with user supplied rawformat
-    if ~isempty(args.rawformat)
-        rawformats(:) = {args.rawformat};    
-    end
+    [scannerlist, sids, rawformats] = spm12w_prepare_csvparser('archdir',...
+                                      archdir, 'rootdir', root, ...
+                                      'scannerid', args.scannerid, ...
+                                      'rawformat', args.rawformat);
 else
     % Check for cell in case user provided string
     if ~iscell(args.scannerid)
@@ -157,9 +121,19 @@ for i = 1:length(scannerlist)
     % Find file and announce intentions
     archfile = dir(fullfile(datadir, ...
                    sprintf('%s_%s.*', rawformats{i},scannerlist{i})));
-    fprintf(['Subject: %s (%s) | Extracting %s data from archive, ', ...
-             'this may take awhile...\n'], scannerlist{i}, sids{i}, ...
-             rawformats{i});
+    % If archfile is empty than either sid is missing from arch or there's a
+    % typo in the arch filename or the subid_list. Either way give an error.
+    if isempty(archfile)
+        spm12w_logger('msg',sprintf(['[EXCEPTION] Cannot find file ',...
+                      '%s_%s in %s... Are you sure it exists?'],...
+                      rawformats{i}, scannerlist{i},datadir))
+        error('Cannot find file %s_%s... Are you sure it exists?', ...
+              rawformats{i},scannerlist{i})
+    else
+        spm12w_logger('msg',sprintf('Subject: %s (%s)',scannerlist{i}, sids{i}))
+        spm12w_logger('msg',sprintf(['Sid:%s | Extracting %s data from ',...
+                      'archive this may take awhile...'], sids{i},rawformats{i}))
+    end    
     % Figure out file extension. Because we can encoutner .tar.gz we can't
     % use fileparts and have to search the string. Next, extract to tmp folder
     % defined above. 
@@ -176,32 +150,36 @@ for i = 1:length(scannerlist)
         unzip(fullfile(datadir, ...
               sprintf('%s_%s.zip',rawformats{i},scannerlist{i})),subjpath);
     else
-        error(['Unrecognized archive extension (not zip, gz or tar.gz). ', ...
-               'Aborting...']);
+        spm12w_logger('msg',sprintf(['[EXCEPTION] Sid:%s | Unreocgnized ',...
+                      'archive extension (not zip, gz or tar.gz)...'],sids{i}))
+        error('Unrecognized archive extension. Aborting...');
     end
     if strcmpi(rawformats{i}, 'nifti') 
         % Find the raw NIFTI files for this subject
         files = dir(fullfile(subjpath,scannerlist{i},'*.nii'));
+        json=0; % no json metadata with scanner nifti files unless we decide to extract some.
     elseif strcmpi(rawformats{i}, 'parrec')       
         % Find the raw PAR files for this subject
         files = dir(fullfile(subjpath,scannerlist{i},'*.PAR'));
         filelist = {files.name};
         options.pathpar = fullfile(subjpath,scannerlist{i},filesep);
         % Convert from parrec if rawformat is parrec
-        fprintf('Converting format: parrec...\n');
+        spm12w_logger('msg','Converting format: parrec...')
         convert_r2a(filelist,options);
-        fprintf('Done.\n');
+        json = 0; %at the moment no json files, check convert_r2a if we can grab some metadata.
     elseif strcmpi(rawformats{i},'dicom')
-        fprintf('Converting format: dicom...\n');
-        % Disable parallel looping in xiangrui's script?
-        % ps = parallel.Settings;
-        % ps.Pool.AutoCreate = false;
-        dicm2nii(subjpath, subjpath, 'nii');
-        fprintf('Done.\n');
+        spm12w_logger('msg','Converting format: dicom...')
+        % Set preferences for dicm2nii. 
+        setpref('dicm2nii_gui_para', 'save_json', true); %save headers as json
+        setpref('dicm2nii_gui_para', 'use_parfor', false); %disable dicm2nii parfor
+        dicm2nii(subjpath, subjpath, 'nii');       
         % Find the converted NIFTI files for this subject
         files = dir(fullfile(subjpath,'*.nii'));
+        json = 1; %json files exist.
     else
-        error('Unknown rawformat: %s. Aborting...', rawformats{i})
+        spm12w_logger('msg',sprintf(['[EXCEPTION] Sid:%s | Unknown raw ',...
+                      'format: %s...'],sids{i}, rawformats{i}));
+        error('Unknown rawformat... Aborting...')
     end
     
     % Trim the small stuff
@@ -223,10 +201,11 @@ for i = 1:length(scannerlist)
     % Make various subject dirs
     rawsid = fullfile(rawdir,sids{i});
     if exist(rawsid,'dir')
-        fprintf(['Previous Subject directory exists... deleting the ', ...
-                  'directory and preparing from raw.\n'])
+        spm12w_logger('msg',sprintf(['[DEBUG] Sid:%s | Previous Subject ',...
+                      'directory exists...'], sids{i}))
+        spm12w_logger('msg',sprintf(['[DEBUG] Sid:%s | Previous directory ',...
+                      'exists, deleting and preparing...'], sids{i}))        
         % Delete prior subject directory
-        fprintf('Deleting prior subject directory...\n')
         rmdir(rawsid,'s')
     end
     mkdir(rawsid);
@@ -243,6 +222,8 @@ for i = 1:length(scannerlist)
         elseif strcmpi(rawformats{i}, 'dicom')
             moveme = fullfile(subjpath,[file_noext,'.nii']);
             movefile(moveme,rawsid);  
+            moveme = fullfile(subjpath,[file_noext,'.json']);
+            movefile(moveme,rawsid);              
         end
         % Check for bval and vec file (OSU data)
         if exist(fullfile(subjpath,'DTI_64.bval'),'file')
@@ -260,7 +241,8 @@ for i = 1:length(scannerlist)
         % Anatomical renaming
         mrifile = dir(fullfile(rawsid,'*T1TFE*.nii'));
         if ~isempty(mrifile)
-            fprintf('Renaming %s to %s\n',mrifile(1).name,'anat.nii and compressing...');
+            spm12w_logger('msg',sprintf(['[DEBUG] Sid:%s | Renaming %s to ',...
+                          'anat.nii and compressing...'], sids{i}, mrifile(1).name))
             movefile(fullfile(rawsid,mrifile(1).name),fullfile(rawsid,'anat.nii'));
             gzip(fullfile(rawsid,'anat.nii'));
             delete(fullfile(rawsid,'anat.nii'));
@@ -271,7 +253,8 @@ for i = 1:length(scannerlist)
             end
         else
             if exist(fullfile(datadir,[scannerlist{i},'_anat'],'anat.nii.gz'),'file')
-                fprintf('Copying anonymized anatomical...\n')
+                spm12w_logger('msg',sprintf(['[DEBUG] Sid:%s | Copying ',...
+                              'anonymized anatomical...'], sids{i}))
                 copyfile(fullfile(datadir,[scannerlist{i},'_anat'],'anat.nii.gz'), ...
                     rawsid)
             end
@@ -279,7 +262,8 @@ for i = 1:length(scannerlist)
         % DTI moving and renaming
         dtifiles = dir(fullfile(rawsid,'*DwiSE*.nii'));
         if ~isempty(dtifiles)
-            fprintf('Renaming and compressing dti files...\n');
+            spm12w_logger('msg',sprintf(['[DEBUG] Sid:%s | Renaming and ',...
+                          'compressing dti files...'], sids{i}));
             dtirun = 1;
             lastgradnum = 0;
             for x = 1:length(dtifiles)
@@ -304,7 +288,9 @@ for i = 1:length(scannerlist)
         for x = 1:length(boldfiles)
             boldname = sprintf('epi_r%.2d.nii',epi_count);
             epi_count = epi_count + 1;
-            fprintf('Renaming %s to %s and compressing...\n',boldfiles(x).name,boldname);
+            spm12w_logger('msg',sprintf(['[DEBUG] Sid:%s | Renaming %s to ',...
+                          '%s and compressing...'],sids{i},...
+                          boldfiles(x).name,boldname));
             movefile(fullfile(rawsid,boldfiles(x).name),fullfile(rawsid,boldname));
             gzip(fullfile(rawsid,boldname));
             delete(fullfile(rawsid,boldname));
@@ -317,7 +303,9 @@ for i = 1:length(scannerlist)
             if niifiles(x).bytes > 30000000 %anatomicals are under 30 megs
                 boldname = sprintf('epi_r%.2d.nii', epi_count);
                 epi_count = epi_count + 1;
-                fprintf('Renaming %s to %s and compressing...\n',niifiles(x).name,boldname);
+                spm12w_logger('msg',sprintf(['[DEBUG] Sid:%s | Renaming %s ',...
+                              'to %s and compressing...'],sids{i}, ...
+                              niifiles(x).name,boldname));
                 movefile(fullfile(rawsid,niifiles(x).name),fullfile(rawsid,boldname));
                 gzip(fullfile(rawsid,boldname));
                 delete(fullfile(rawsid,boldname));
@@ -325,13 +313,15 @@ for i = 1:length(scannerlist)
             % Anatomical renaming
             if niifiles(x).bytes > 28800000 && niifiles(x).bytes < 29000000
                 if anat_count == 1
-                    fprintf('Renaming %s to %s\n',niifiles(x).name,'anat.nii and compressing...');
+                    spm12w_logger('msg',sprintf(['[DEBUG] Sid:%s | Renaming %s to anat.nii ',...
+                                  'and compressing'],sids{i},niifiles(x).name));
                     movefile(fullfile(rawsid,niifiles(x).name),fullfile(rawsid,'anat.nii'));
                     gzip(fullfile(rawsid,'anat.nii'));
                     delete(fullfile(rawsid,'anat.nii'));
                     anat_count = anat_count + 1;
                 elseif anat_count == 2
-                    fprintf('Renaming %s to %s\n',niifiles(x).name,'anat_2.nii and compressing...');
+                    spm12w_logger('msg',sprintf(['[DEBUG] Sid:%s | Renaming %s to anat_2.nii ',...
+                                  'and compressing'], sids{i},niifiles(x).name));
                     movefile(fullfile(rawsid,niifiles(x).name),fullfile(rawsid,'anat_2.nii'));
                     gzip(fullfile(rawsid,'anat_2.nii'));
                     delete(fullfile(rawsid,'anat_2.nii'));
@@ -363,12 +353,21 @@ for i = 1:length(scannerlist)
                 otherwise
                     % cleanup tmp dir
                     rmdir(subjpath,'s');
-                    error('unknown filetype: %s. Aborting...', niifile{1})
+                    spm12w_logger('msg',sprintf(['[EXCEPTION] Sid:%s | ',...
+                                   'Unknown filetype: %s...'],sids{i},niifile{1}));
+                    error('unknown filetype. Aborting...')
             end
-            fprintf('Renaming %s to %s and compressing...\n',niifile{1},newname);
+            spm12w_logger('msg', sprintf(['[DEBUG] Sid:%s | Renaming %s to ',...
+                          '%s and compressing...'],sids{i},niifile{1},newname));
             movefile(fullfile(rawsid,niifile{1}),fullfile(rawsid,newname));
             gzip(fullfile(rawsid,newname));
-            delete(fullfile(rawsid,newname));                            
+            delete(fullfile(rawsid,newname));     
+            % now for json
+            jsonfile = strrep(niifile{1},'.nii','.json');
+            newname = strrep(newname,'.nii','.json');
+            spm12w_logger('msg', sprintf(['[DEBUG] Sid:%s | Renaming %s to ',...
+                          '%s...'],sids{i},jsonfile,newname));
+            movefile(fullfile(rawsid,jsonfile),fullfile(rawsid,newname));           
         end
     end
     % Delete the extracted data
@@ -376,5 +375,6 @@ for i = 1:length(scannerlist)
 end
 
 % Print completed
-fprintf('Conversion to nifti on %d subjects completed...\n', length(scannerlist));
+spm12w_logger('msg', sprintf(['Conversion to nifti on %d subjects ',...
+              'completed...'], length(scannerlist)));
 cd(root)
