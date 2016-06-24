@@ -7,7 +7,7 @@
 roi.username = 'ddw';
 
 % Paths and names
-roi.study_dir = 'C:\Users\ddw\Documents\MATLAB\tutorial_data';
+roi.study_dir = '/lab/neurodata/ddw/tutorial_data';
 roi.glm_name = 'glm_tutorial';      % glm to use for extracting parameters
 roi.roi_name = 'roi_tutorial';      % name of directory for roi analysis output
 

@@ -172,6 +172,7 @@ for i = 1:length(scannerlist)
         % Set preferences for dicm2nii. 
         setpref('dicm2nii_gui_para', 'save_json', true); %save headers as json
         setpref('dicm2nii_gui_para', 'use_parfor', false); %disable dicm2nii parfor
+        setpref('dicm2nii_gui_para', 'save_patientName', false); %save id       
         dicm2nii(subjpath, subjpath, 'nii');       
         % Find the converted NIFTI files for this subject
         files = dir(fullfile(subjpath,'*.nii'));
@@ -336,19 +337,19 @@ for i = 1:length(scannerlist)
         % Naming conventions are closer to spm12w on OSU dicoms making this easy
         for niifile = {niifiles.name}
             switch logical(true)          
-                case strcmp(niifile{1},sprintf('run%d.nii',epi_count))
+                case strcmpi(niifile{1},sprintf('run%d.nii',epi_count))
                     newname = sprintf('epi_r%.2d.nii', epi_count);
                     epi_count = epi_count + 1;
-                case strcmp(niifile{1},sprintf('rest%d.nii',rest_count))
+                case strcmpi(niifile{1},sprintf('rest%d.nii',rest_count))
                     newname = sprintf('rest_r%.2d.nii', rest_count);
                     rest_count = rest_count + 1;
-                case strcmp(niifile{1},'MPRAGE.nii')
+                case strcmpi(niifile{1},'MPRAGE.nii')
                     newname = 'anat.nii';
-                case strcmp(niifile{1},'DTI_64.nii')
+                case strcmpi(niifile{1},'DTI_64.nii')
                     newname = 'dti.nii';                 
-                case strcmp(niifile{1},'fieldmap.nii')
+                case strcmpi(niifile{1},'fieldmap.nii')
                     newname = 'epi_fieldmap.nii';
-                case strcmp(niifile{1},'fieldmap_phase.nii')
+                case strcmpi(niifile{1},'fieldmap_phase.nii')
                     newname = 'epi_fieldmap_phase.nii';        
                 otherwise
                     % cleanup tmp dir

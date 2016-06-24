@@ -317,17 +317,18 @@ function stager(h, eventdata, rstage, sids, para_file)
     end
        
     % Load sids for sid_stages
-    if ismember(rstage,sid_stages)
-        if ismember(rstage,sid_stages(1:3))
-            sids = spm12w_getsid(fullfile(pwd,'raw'));
-        elseif ismember(rstage,sid_stages(4:end))
-            sids = spm12w_getsid();
+    if isempty(sids)
+        if ismember(rstage,sid_stages)
+            if ismember(rstage,sid_stages(1:3))
+                sids = spm12w_getsid(fullfile(pwd,'raw'));
+            elseif ismember(rstage,sid_stages(4:end))
+                sids = spm12w_getsid();
+            end
+            if isempty(sids)
+                error('No subjects selected...');
+            end  
         end
-        if isempty(sids)
-            error('No subjects selected...');
-        end  
     end
-    
     % Load para files for p_stages, glm_stages, roi_stages or design_stages
     if isempty(para_file)
         if ismember(rstage, p_stages)

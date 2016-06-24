@@ -9,7 +9,7 @@ glm.username = 'ddw';
 % Paths and names
 glm.study_dir = '/lab/neurodata/ddw/tutorial_data';
 glm.prep_name = 'epi_norm';
-glm.glm_name = 'glm_tutorial';
+glm.glm_name = 'glm_tutorial_para';
 glm.ons_dir  = 'tutorial';
 
 % GLM Conditions (seperate by commas)
@@ -18,7 +18,7 @@ glm.blocks     = {};
 glm.regressors = {};
 
 % GLM Parametric modualtors - Special keyword: 'allthethings'
-glm.parametrics = {}; 
+glm.parametrics = {'humanxattract','humanxlike'}; 
 
 % GLM Model Inclusions - 1=yes 0=no
 glm.include_run = 'all'; % Specify run to model: 'all' or runs (e.g. [1,3])
@@ -32,11 +32,11 @@ glm.include_run = 'all'; % Specify run to model: 'all' or runs (e.g. [1,3])
 % not your user supplied regressors under glm.regressors, so in those cases
 % you should create your own allVSbaseline and refuse the housewine). 
 glm.con.housewine = 'housewine';
-glm.con.humVSveg  = [1 0 0 -1];
-glm.con.aniVSmin  = [0 1 0 -1];
+glm.con.humVSveg  = [1 0 0 0 -1];
+glm.con.aniVSmin  = [0 0 0 1 0 -1];
 glm.con.minANDhum = 'mineral human';
 glm.con.humVSall  = 'human vs. animal vegetable mineral';
 
 % RFX Specification
-glm.rfx_name = 'rfx_tutorial';
+glm.rfx_name = 'rfx_tutorial_para';
 glm.rfx_conds = {'allVSbaseline','humVSall'};

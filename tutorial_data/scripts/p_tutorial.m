@@ -7,8 +7,8 @@
 p.username = 'ddw';
 
 % Paths and names
-p.study_dir = 'C:\Users\ddw\Documents\MATLAB\tutorial_data';
-p.prep_name = 'standard_prep';
+p.study_dir = '/lab/neurodata/ddw/tutorial_data';
+p.prep_name = 'epi_norm';
 
 % Preprocessing Routines - 1=yes 0=no
 p.unwarp        = 1; % Unwarping (correct field inhomogeneties)      

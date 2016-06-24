@@ -76,6 +76,8 @@ if any(args.tests==0)
     spm12w_prepare
 end
 
+args.sids
+isempty(args.sids)
 % If sids is empty and user is requesting preprocessing, check in raw instead of
 % prep. 
 if isempty(args.sids)     

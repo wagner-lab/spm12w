@@ -7,7 +7,7 @@
 p.username = 'ddw';
 
 % Paths and names
-p.study_dir = 'C:\Users\ddw\Documents\MATLAB\tutorial_data';
+p.study_dir = '/lab/neurodata/ddw/tutorial_data';
 p.prep_name = 'spm12_norm';
 
 % Preprocessing Routines - 1=yes 0=no
