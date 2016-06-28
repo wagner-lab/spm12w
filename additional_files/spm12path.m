@@ -15,11 +15,15 @@
 fprintf('=== Adding paths for spm12/spm12w/tools ... \n');
 
 % spm12 and spm12w path variables (edit these)
-spm12_path  = '/lab/opt/matlab/spm12_6685';
-spm12w_path = '/lab/opt/matlab/spm12w/spm12w';
+spm12_path  = 'C:\Users\ddw\Dropbox\Matlab\spm12\spm12_6685';
+spm12w_path = 'C:\Users\ddw\Documents\GitHub\spm12w\spm12w';
+
+% Optional ghostscript path (edit this to point local GS installation)
+% If using Matlab < 2014 or Linux you may leave this blank.
+gspath = 'C:\Program Files\gs\gs9.19\bin\';
 
 % Optional tools paths (edit these, add additional tools to the tools var)
-tools_path   = '/lab/opt/matlab/tools';
+tools_path   = 'C:\Users\ddw\Dropbox\Matlab\spm12\tools';
 tools{1} = 'motionfingerprint_1.5.2'; % http://www.medizin.uni-tuebingen.de/kinder/en/research/neuroimaging/software/
 tools{2} = 'PhysIO_r534'; % http://www.translationalneuromodeling.org/tnu-checkphysretroicor-toolbox/
 tools{3} = 'mni2tal'; % http://imaging.mrc-cbu.cam.ac.uk/downloads/MNI2tal/
@@ -27,12 +31,6 @@ tools{4} = 'r2agui_2.7'; % http://sourceforge.net/projects/r2agui/
 tools{5} = 'dicm2nii'; %http://www.mathworks.com/matlabcentral/fileexchange/42997-dicom-to-nifti-converter--nifti-tool-and-viewer 
 tools{6} = 'xjview_8.12'; % http://www.alivelearn.net/xjview8/download/
 
-% Optional ghostscript path (edit this to point local GS installation)
-% Matlab 2015b no longer ships with ghostscript, thus we need to specify
-% local path to GS installation.
-% If using Maltab < 2014 or Linux you may leave this blank.
-%gspath = 'C:\Program Files\gs\gs9.18\bin\';
-gspath = '';
 % Add spm paths & path to ghoscript
 addpath(spm12_path, spm12w_path, gspath)
 
@@ -49,11 +47,11 @@ spm12loc = fileparts(which('spm'));
 spm12wloc = fileparts(which('spm12w'));
 
 % Print path checks
-fprintf(['=== You are using %s revision %s located in ... \n' ...
+fprintf(['=== You are using %s revision %s located in: \n' ...
          '=== %s \n'], r, v,spm12loc);
-fprintf(['=== You are using spm12w located in ... \n' ...
+fprintf(['=== You are using spm12w located in: \n' ...
          '=== %s \n'], spm12wloc);
-fprintf(['=== You are using fMRI tools located in ... \n' ...
+fprintf(['=== You are using fMRI tools located in: \n' ...
          '=== %s \n'], tools_path);
 
 clear tools *_path r v spm12loc spm12wloc
