@@ -81,10 +81,10 @@ archdir = fullfile(root, 'arch');
 rawdir = fullfile(root, 'raw');
 
 if isempty(args.scannerid) && isempty(args.sid) && isempty(args.rawformat)
-    [scannerlist, sids, rawformats] = spm12w_prepare_csvparser('archdir',...
-                                      archdir, 'rootdir', root, ...
-                                      'scannerid', args.scannerid, ...
-                                      'rawformat', args.rawformat);
+    [scannerlist, sids, rawformats, excludeseries] = spm12w_prepare_csvparser('archdir',...
+                                                archdir, 'rootdir', root, ...
+                                                'scannerid', args.scannerid, ...
+                                                'rawformat', args.rawformat);
 else
     % Check for cell in case user provided string
     if ~iscell(args.scannerid)
@@ -183,19 +183,46 @@ for i = 1:length(scannerlist)
         error('Unknown rawformat... Aborting...')
     end
     
-    % Trim the small stuff
+    % Trim the excluded series, fix the series that we keep and trim 
+    % the small stuff.
+    spm12w_logger('msg',sprintf(['Sid:%s | Pruning unecessary files',...
+                                 ' from conversion'],sids{i}));
     count = 1;
     for ii = 1:length(files)
         % Prune scout and other uncessary scans below 10MB.
         % But be mindful of fieldmaps. 
         % At some point we should harmonize these hacks across
         % dicom/parrec/nifti and the various sites. 
-        if files(ii).bytes > 10000000 && isempty(strfind(files(ii).name,'fieldmap'))
-            filelist{count} = files(ii).name;
-            count = count + 1;
-        elseif ~isempty(strfind(files(ii).name,'fieldmap'))
-            filelist{count} = files(ii).name;
-            count = count + 1;
+        if isempty(strfind(files(ii).name,sprintf('_s%03d.nii',str2num(excludeseries{i}))))
+            if files(ii).bytes > 10000000 || ~isempty(strfind(files(ii).name,'fieldmap'))
+                % Check for the series that we keep if there's excludes
+                if ~isempty(excludeseries{i}) && ~isempty(regexp(files(ii).name,'_s0\d\d.nii', 'once'))
+                    % if true rename file and it json and add to the filelist
+                    spm12w_logger('msg',sprintf('[DEBUG] Sid:%s | Adjusting name of unexcluded series: %s',...
+                          sids{i},files(ii).name));
+                    newname = sprintf('%s.nii',files(ii).name(1:regexp(files(ii).name,'_s0\d\d.nii')-1));
+                    spm12w_logger('msg',sprintf('[DEBUG] Sid:%s | Renaming %s to %s...',...
+                          sids{i},files(ii).name, newname));
+                    movefile(fullfile(subjpath,files(ii).name),fullfile(subjpath,newname))
+                    [~,oldnamejson]=fileparts(files(ii).name);
+                    oldnamejson = [oldnamejson,'.json'];
+                    newnamejson = sprintf('%s.json',files(ii).name(1:regexp(files(ii).name,'_s0\d\d.nii')-1));
+                    spm12w_logger('msg',sprintf('[DEBUG] Sid:%s | Renaming %s to %s...',...
+                          sids{i},oldnamejson, newnamejson));
+                    movefile(fullfile(subjpath,oldnamejson),fullfile(subjpath,newnamejson))
+                    filelist{count} = newname;
+                    count = count + 1;
+                else
+                    filelist{count} = files(ii).name;
+                    count = count + 1;
+                end
+            else
+                spm12w_logger('msg',sprintf('[DEBUG] Sid:%s | Skipping file: %s',...
+                              sids{i},files(ii).name));
+            end
+        else
+            spm12w_logger('msg',sprintf('[DEBUG] Sid:%s | Skipping file: %s',...
+                          sids{i},files(ii).name));
         end
     end   
        

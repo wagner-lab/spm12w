@@ -1,4 +1,4 @@
-function [scannerlist, sids, rawformats] = spm12w_prepare_csvparser(varargin)
+function [scannerlist, sids, rawformats, excludeseries] = spm12w_prepare_csvparser(varargin)
 % spm12w_prepare_csvparser.m
 %
 % Inputs
@@ -17,6 +17,13 @@ function [scannerlist, sids, rawformats] = spm12w_prepare_csvparser(varargin)
 %            spm12w_prepare use the format specifed in the third column of the
 %            subid_list.txt (optional).    
 %
+% excludeseries: Optional dicom series to exclude from conversion (i.e., an
+%                aborted scan due to tehnical malfunction). This requires you 
+%                determine the series number to exclude using a dicom viewer
+%                such as DicomBrowser. At the moment we only support excluding
+%                one series per subject.
+%             
+%
 % Returns
 % -------
 % scannerlist: Cell array of subject ids.
@@ -29,6 +36,8 @@ function [scannerlist, sids, rawformats] = spm12w_prepare_csvparser(varargin)
 %            (Philips) or 'dicom' (Siemens). If left unspecified,
 %            spm12w_prepare use the format specifed in the third column of the
 %            subid_list.txt     
+%
+% excludeseries: The series number to exclude from conversion. 
 %
 % This funciton is meant to be used internally by spm12w_prepare.m and spm12w.m
 % in order to parse subid_list files. It is not intended for use outside of
@@ -65,7 +74,7 @@ else
 end
 % Load subjects and sids from subid_list.txt file
 filename = sidfile;
-formatSpec = '%s%s%[^\n\r]';
+formatSpec = '%s%s%s%[^\n\r]';
 fid = fopen(filename, 'r');
 subidArray = textscan(fid, formatSpec, 'Delimiter', ',');
 fclose(fid);
@@ -75,6 +84,7 @@ fclose(fid);
 scannerlist = deblank(subidArray{1})';
 sids = deblank(subidArray{2})';
 rawformats = deblank(subidArray{3})';
+excludeseries = deblank(subidArray{4})';
 
 % Allow user to select the sids they want
 if isempty(args.scannerid)
@@ -88,6 +98,7 @@ end
 scannerlist = scannerlist(scanneridx);
 sids = sids(scanneridx);
 rawformats = rawformats(scanneridx);
+excludeseries = excludeseries(scanneridx);
 % If user supplied rawformat arg, then replace rawformat harvested from
 % subid_list.txt with user supplied rawformat
 if ~isempty(args.rawformat)
