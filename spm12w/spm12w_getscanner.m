@@ -36,7 +36,7 @@ msg = sprintf(['Loading scanning parameters from epi ' ...
                    'files for subject: %s'], p.sid);
 spm12w_logger('msg',p.niceline, 'level',p.loglevel)
 spm12w_logger('msg',msg, 'level',p.loglevel);
-             
+
 % Figure out dir and extension of epifile
 [epidir, ~, epiext] = fileparts(args.epifiles{1});
 

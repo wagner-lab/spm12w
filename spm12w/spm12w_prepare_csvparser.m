@@ -35,7 +35,7 @@ function [scannerlist, sids, rawformats, excludeseries] = spm12w_prepare_csvpars
 % rawformats: Format of raw data to prepare. Options are 'nifti', 'parrec' 
 %            (Philips) or 'dicom' (Siemens). If left unspecified,
 %            spm12w_prepare use the format specifed in the third column of the
-%            subid_list.txt     
+%            subid_list.csv    
 %
 % excludeseries: The series number to exclude from conversion. 
 %
@@ -64,7 +64,7 @@ args = spm12w_args('nargs',0, 'defaults', args_defaults, 'arguments', varargin);
 if exist(fullfile(args.archdir, 'subid_list.txt'),'file')
     sidfile = fullfile(args.archdir, 'subid_list.txt');
 elseif exist(fullfile(args.archdir, 'subid_list.csv'),'file')
-    sidfile = fullfile(args.archdir, 'subid_list');
+    sidfile = fullfile(args.archdir, 'subid_list.csv');
 elseif exist(fullfile(args.archdir, 'subid_list'),'file')
     sidfile = fullfile(args.archdir, 'subid_list');
 else

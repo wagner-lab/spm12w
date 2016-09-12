@@ -36,7 +36,7 @@ function spm12w_preprocess(varargin)
 %                           'para_file','./scripts/username/p_tutorial.m')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: June, 2015
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: September, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -54,6 +54,12 @@ spm12w_logger('msg','setup_prep', 'level',p.loglevel, 'params',p)
 
 % Get parameters from epi files in rawdir
 tmp_epifiles = dir([fullfile(p.rawdir,p.fmri),'_*.nii.gz']);
+if isempty(tmp_epifiles)
+    spm12w_logger('msg',sprintf(['[EXCEPTION] No files found at: %s' ... 
+                  '... Aborting...'],fullfile(p.rawdir,p.fmri)),...
+                  'level',p.loglevel);
+    error('No files found... Are you sure you prepared the data?')          
+end
 epifiles = {};
 for epifile = {tmp_epifiles.name}
     epifiles = [epifiles, fullfile(p.rawdir,epifile{1})];
