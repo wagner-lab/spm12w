@@ -32,7 +32,7 @@ function glm = spm12w_glm_build(varargin)
 %       >>spm12w_glm_build('type','events','params',glm)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: December, 2015
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: September, 2016
 % # TODO: Figure out how to disable spm orthogonalization of regressors as
 % #       spm12 has added the ability to do so. 
 % =======1=========2=========3=========4=========5=========6=========7=========8
@@ -86,17 +86,17 @@ if ismember(args.type, {'events','blocks','regressors'})
         if strcmp(glm.time,'scans') && strcmp(glm.durtime, 'sec')
             spm12w_logger('msg', sprintf(['[WARNING] Onset time is scans ',...
                           'but duration time is sec. Dividing durations by ',...
-                          '%1.1f'], glm.tr), 'level',glm.loglevel)
+                          '%1.2f'], glm.tr), 'level',glm.loglevel)
             onsets.(onsname{1}).dur = onsets.(onsname{1}).dur./glm.tr; 
         elseif strcmp(glm.time,'scans') && strcmp(glm.durtime, 'ms')
             spm12w_logger('msg', sprintf(['[WARNING] Onset time is scans ',...
                           'but duration time is ms. Dividing durations by ',...
-                          '%1.1f'], glm.tr*1000), 'level',glm.loglevel)
+                          '%1.2f'], glm.tr*1000), 'level',glm.loglevel)
             onsets.(onsname{1}).dur = onsets.(onsname{1}).dur./(glm.tr*1000);        
         elseif strcmp(glm.time,'sec') && ~strcmp(glm.durtime, 'sec')
             spm12w_logger('msg', sprintf(['[WARNING] Onset time is sec ',...
                           'but duration time is scans. Multiplying durations by ',...
-                          '%1.1f'], glm.tr), 'level',glm.loglevel)
+                          '%1.2f'], glm.tr), 'level',glm.loglevel)
             onsets.(onsname{1}).dur = onsets.(onsname{1}).dur.*glm.tr; 
         end
         % Check for special keyword to grab all the parametrics

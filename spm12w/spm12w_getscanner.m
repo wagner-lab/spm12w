@@ -22,7 +22,7 @@ function p = spm12w_getscanner(varargin)
 %                         './raw/s01/epi_r02.nii.gz'}, p)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: November, 2014 | Updated: January, 2016
+% # Author: Dylan Wagner | Created: November, 2014 | Updated: September, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 args_defaults = struct('epifiles','', 'p','');
@@ -63,7 +63,7 @@ for ses_i = 1:length(args.epifiles)
         delete(outfile)
         rmdir(tmpdir)
     end
-    spm12w_logger('msg', sprintf('Run: %d, tr=%.1f, nvols=%d, nslice=%d', ...
+    spm12w_logger('msg', sprintf('Run: %d, tr=%.2f, nvols=%d, nslice=%d', ...
                   ses_i, tr(ses_i), nvols(ses_i), nslice(ses_i)), ...
                   'level', p.loglevel)
 end

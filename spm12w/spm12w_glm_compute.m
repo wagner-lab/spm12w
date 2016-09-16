@@ -40,7 +40,7 @@ function spm12w_glm_compute(varargin)
 %                           './scripts/username/glm_tutorial.m')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: May, 2015
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: September, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -80,7 +80,7 @@ end
 
 % Show user the parameters we harvested.
 for ses = 1:glm.nses
-    spm12w_logger('msg', sprintf('Run:%d, nvols=%d, TR=%.1f', ses, ...
+    spm12w_logger('msg', sprintf('Run:%d, nvols=%d, TR=%.2f', ses, ...
                   glm.nvols(ses), glm.tr(ses)), 'level', glm.loglevel);
 end
 
@@ -115,7 +115,7 @@ end
 % Check that the runs to be modeled all have same TR
 if length(unique(glm.tr)) > 1
     spm12w_logger('msg', sprintf(['[EXCEPTION] Runs to be modeled have ', ...
-              'different TRs (%s)'], sprintf('Run %.1f ',glm.tr)), ...
+              'different TRs (%s)'], sprintf('Run %.2f ',glm.tr)), ...
               'level', glm.loglevel)
     error('Modeled runs do not all have the same TR...')
 else

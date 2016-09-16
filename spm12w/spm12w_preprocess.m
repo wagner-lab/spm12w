@@ -196,7 +196,7 @@ if p.slicetime
         % custom log message for the rare case when unique(p.tr) > 1
         if length(unique(p.tr)) > 1
             spm12w_logger('msg',sprintf(['Slice time correction for sessions ',...
-                      'with tr: %.1f'], tr{1}),'level',p.loglevel)
+                      'with tr: %.2f'], tr{1}),'level',p.loglevel)
         end
         % Load epi files for files corresponding to the current unique tr      
         epifiles = cell(1,sum(ismember(p.tr,tr{1})));
