@@ -16,7 +16,12 @@ function spm12w_prepare(varargin)
 % rawformat: Format of raw data to prepare. Options are 'nifti', 'parrec' 
 %            (Philips) or 'dicom' (Siemens). If left unspecified,
 %            spm12w_prepare use the format specifed in the third column of the
-%            subid_list.txt            
+%            subid_list.txt        
+%
+% excludeseries: Number of dicom series to exclude from dicom conversion
+%                (i.e., an aborted run). You will need the dicom series 
+%                number using a dicom browser for this to work. For the 
+%                moment we only support excluding one run. 
 %
 % Converts raw philips format par/rec files or dicom data into nifti format
 % files. This will also take nifti files exported by the scanner (e.g. Philips)
@@ -72,7 +77,8 @@ function spm12w_prepare(varargin)
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
-arg_defaults = struct('scannerid','', 'sid', '', 'rawformat','');
+arg_defaults = struct('scannerid','', 'sid', '', 'rawformat','',...
+                      'excludeseries','');
 args = spm12w_args('nargs',0, 'defaults',arg_defaults, 'arguments',varargin);
 
 % Paths
@@ -87,18 +93,25 @@ if isempty(args.scannerid) && isempty(args.sid) && isempty(args.rawformat)
                                                 'rawformat', args.rawformat);
 else
     % Check for cell in case user provided string
-    if ~iscell(args.scannerid)
-        args.scannerid = cellstr(args.scannerid);
+    for cellchk = fieldnames(args)'
+        if ~iscell(args.(cellchk{1}))
+            args.(cellchk{1}) = cellstr(args.(cellchk{1}));
+        end
     end
-    if ~iscell(args.sid)
-        args.sid = cellstr(args.sid);
-    end
-    if ~iscell(args.rawformat)
-        args.rawformat = cellstr(args.rawformat);
-    end 
+
+    % Adjust rawformats assuming if one format given it applies to all
+    if length(args.rawformat) == 1
+        args.rawformat = repmat(args.rawformat,1,length(args.sid));
+    end    
+    % Adjust size of excludeseries, blanking the remaining entries 
+    if length(args.excludeseries) == 1
+        args.excludeseries(2:length(args.sid)) = repmat({''},1,length(args.sid)-1);
+    end   
+    % Assign adjusted args to internal variables to match csv_parser output
     scannerlist = args.scannerid;
     sids = args.sid;
     rawformats = args.rawformat;
+    excludeseries = args.excludeseries;
 end
 
 % set R2AGUI options regardless of rawformat
