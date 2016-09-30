@@ -44,7 +44,7 @@ function parameters = spm12w_getp(varargin)
 %                     'para_file','scripts/glm_h8tjazz.m')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: May, 2012 | Updated: April, 2016
+% # Author: Dylan Wagner | Created: May, 2012 | Updated: September, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -87,6 +87,12 @@ end
 % Set the internal p struct to the loaded pfile type
 p_ = eval(args.type);
 
+% Check for study_dir field. If not specified, figure it out from para_file.
+if ~isfield(p_,'study_dir')
+    study_dir = strsplit(fileparts(args.para_file),'scripts');
+    p_.study_dir = study_dir{1};
+end
+
 % Assign para file path to p struct
 p_.para_file = args.para_file;
 
@@ -109,7 +115,6 @@ for zfield = zerofields
     end
 end
    
-    
 % Load defaults file, assign to var then delete def
 def_file = which('spm12w_defaults.m');
 run(def_file)     % def structure now in namespace

@@ -76,14 +76,33 @@ if length(unique(nslice)) == 1
     p.nvols  = nvols;
     p.tr     = tr;
     % Determine slice order 
+    % Get potential json name
+    [epidir,jname,~] = fileparts(args.epifiles{1});
+    jname = strtok(jname,'.'); % in case fileparts left .nii ext
+    jpath = fullfile(epidir,[jname,'.json']);
     p.sliceorder=[];
-    if strcmp(p.sformula, 'philips')
+    if exist(jpath,'file')
+        % Determine slice order from json
+        % Load json and process string (this is clunky because matlab has no 
+        % *documented* json parser and I'm hesitant to use the internal one
+        % in case they break it in future updates).        
+        fid = fopen(jpath);
+        raw = fread(fid,inf);
+        str = char(raw');
+        fclose(fid);    
+        [tmp_str,~] = strsplit(str,'"SliceTiming": [');
+        [tmp_str,~] = strsplit(tmp_str{2},']');
+        slicetiming = str2num(tmp_str{1});
+        % Now convert to sliceorder
+        [~, p.sliceorder] = ismember(slicetiming,sort(slicetiming));
+        p.sliceorder = p.sliceorder';
+    elseif strcmp(p.sformula, 'philips')
     % Formula for interleaved sqeuence on Philips Achieva 3T
         for i = 1:round(sqrt(p.nslice))
             p.sliceorder = [p.sliceorder i:round(sqrt(p.nslice)):p.nslice];
         end
     else
-        % Formula for regular interleaved sequences
+        % Formula for interleaved bottom-up sequence 
         p.sliceorder=[1:2:p.nslice 2:2:p.nslice];
     end
 else

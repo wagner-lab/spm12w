@@ -167,6 +167,7 @@ for i = 1:length(scannerlist)
                       'archive extension (not zip, gz or tar.gz)...'],sids{i}))
         error('Unrecognized archive extension. Aborting...');
     end
+    % Convert files depending on format (nifti/parrec/dicom)
     if strcmpi(rawformats{i}, 'nifti') 
         % Find the raw NIFTI files for this subject
         files = dir(fullfile(subjpath,scannerlist{i},'*.nii'));
