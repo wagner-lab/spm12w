@@ -53,7 +53,7 @@ spm12w_dirsetup('dirtype', 'prep_clean', 'params',p)
 spm12w_logger('msg','setup_prep', 'level',p.loglevel, 'params',p)
 
 % Get parameters from epi files in rawdir
-tmp_epifiles = dir([fullfile(p.rawdir,p.fmri),'_*.nii.gz']);
+tmp_epifiles = dir([fullfile(p.rawdir,p.fmri),'_r*.nii.gz']);
 if isempty(tmp_epifiles)
     spm12w_logger('msg',sprintf(['[EXCEPTION] No files found at: %s' ... 
                   '... Aborting...'],fullfile(p.rawdir,p.fmri)),...

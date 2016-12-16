@@ -32,7 +32,7 @@ function glm = spm12w_glm_build(varargin)
 %       >>spm12w_glm_build('type','events','params',glm)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: September, 2016
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: December, 2016
 % # TODO: Figure out how to disable spm orthogonalization of regressors as
 % #       spm12 has added the ability to do so. 
 % =======1=========2=========3=========4=========5=========6=========7=========8
@@ -43,6 +43,13 @@ args = spm12w_args('nargs',4, 'defaults', args_defaults, 'arguments', varargin);
 
 % Assign params to glm for cleaner code
 glm = args.params;
+
+% Check if parametrics exist, as users may often not include the field in their 
+% params file, we'll create it if it doesn't exist so as not to crash
+% the model generation below
+if ~isfield(glm,'parametrics')
+    glm.parametrics = {};
+end
 
 % Load onset files and create a matrix of model predictors
 % Column 1 = Onsets, Column 2 = Durations, Column 3...n = parametrics.
@@ -115,7 +122,7 @@ if ismember(args.type, {'events','blocks','regressors'})
             % they apply to current onset condition
             parlist = '';
             for para = glm.parametrics
-                if strfind(para{1},onsname{1}) == 1
+                if strcmp([onsname{1},'x'],para{1}(1:length(onsname{1})+1))
                     % Check for sid specific parametrics otherwise global
                     % As we don't know exactly how many parametrics, we do a dir. 
                     sidfname = sprintf('%s_%s.%s', glm.sid, para{1}, glm.ons_ext);

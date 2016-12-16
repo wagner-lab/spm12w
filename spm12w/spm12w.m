@@ -57,7 +57,7 @@ function spm12w(varargin)
 % To run spm12w preprocessing and GLM on a saved list of sids and overriding gui
 % and providing parallele processing argumetns (i.e, the works!). 
 %
-%       >> spm12w('stage','prep','sids','./auxil/sidlist.mat',...
+%       >> spm12w('stage','prep_glm','sids','./auxil/sidlist.mat',...
 %                 'para_file',{'./scripts/username/p_tutorial.m',...
 %                 './scripts/username/glm_tutorial.m'}, ...
 %                 'parloop',1,'parcores',24)
@@ -310,7 +310,7 @@ function stager(h, eventdata, rstage, sids, para_file)
         
     % Get the inputs for prepare stage.
     if ismember(rstage,prepare_stage)
-        [scannerlist, sids, rawformats] = spm12w_prepare_csvparser();
+        [scannerlist, sids, rawformats, excludeseries] = spm12w_prepare_csvparser(); 
         if isempty(sids)
             error('No subjects selected...');
         end  
@@ -383,12 +383,16 @@ function stager(h, eventdata, rstage, sids, para_file)
                           'processing on %d cores...'],gui.parcores))
             parfor sid_i = 1:length(sids)
                 spm12w_prepare('scannerid',scannerlist{sid_i}, ...
-                               'sid', sids{sid_i},'rawformat',rawformats{sid_i})
+                               'sid', sids{sid_i},...
+                               'rawformat',rawformats{sid_i},...
+                               'excludeseries',excludeseries{sid_i})
             end
         else
             for sid_i = 1:length(sids)
                 spm12w_prepare('scannerid',scannerlist{sid_i}, ...
-                               'sid', sids{sid_i},'rawformat',rawformats{sid_i})
+                               'sid', sids{sid_i},...
+                               'rawformat',rawformats{sid_i},...
+                               'excludeseries',excludeseries{sid_i})
             end
         end   
     end

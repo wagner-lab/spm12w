@@ -166,16 +166,17 @@ def.cleanupzip = 1;  % gzip final datasets (0 = no).
 def.mask = fullfile(def.imgfiledir,'bigmask_3x3x3.nii');
 
 % GLM Model Specifications
-def.runsplit    = 0;  % Seperate GLM per run?
-def.design_only = 0;  % Design only (i.e., no data)
-def.use_smooth  = 1;  % Run GLM on: 1 = smoothed, 2 = unsmoothed
-def.duration    = 0;  % Event/Block Duration (same units as glm.time). 
-                      % Dur files will override.
-def.block_conv  = 1;  % Convolve blocks (0 for state/item) - 1=yes 0=no
-def.polort      = 1;  % Order of polynomials: 0:Const|1:Linear|2:Quad|3:Cubic
-def.outliers    = 1;  % Include outlier scans as nuissance? (use spm12w_art.m)
-def.move        = 1;  % Include motion regressors?
-def.nuissance   = 1;  % Include additional nuissance (run constants, constant)
+def.runsplit    = 0;     % Seperate GLM per run?
+def.design_only = 0;     % Design only (i.e., no data)
+def.include_run = 'all'; % Specify run to model: 'all' or runs (e.g. [1,3])
+def.use_smooth  = 1;     % Run GLM on: 1 = smoothed, 2 = unsmoothed
+def.duration    = 0;     % Event/Block Duration (same units as glm.time). 
+                         % Dur files will override.
+def.block_conv  = 1;     % Convolve blocks (0 for state/item) - 1=yes 0=no
+def.polort      = 1;     % Order of polynomials: 0:Const|1:Linear|2:Quad|3:Cubic
+def.outliers    = 1;     % Include outlier scans as nuissance? (use spm12w_art.m)
+def.move        = 1;     % Include motion regressors?
+def.nuissance   = 1;     % Include additional nuissance (run constants, constant)
 
 % GLM Model Defaults
 def.ons_ext    = 'txt';   % If no extension leave blank (ie: '';)   

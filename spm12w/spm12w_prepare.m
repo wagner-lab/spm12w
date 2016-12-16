@@ -378,7 +378,7 @@ for i = 1:length(scannerlist)
         % Naming conventions are closer to spm12w on OSU dicoms making this easy
         for niifile = {niifiles.name}
             switch logical(true)          
-                case strcmpi(niifile{1},sprintf('run%d.nii',epi_count))
+                case strcmpi(niifile{1},sprintf('run%d.nii',epi_count)) || strcmpi(niifile{1},sprintf('Run%d.nii',epi_count))
                     newname = sprintf('epi_r%.2d.nii', epi_count);
                     epi_count = epi_count + 1;
                 case strcmpi(niifile{1},sprintf('rest%d.nii',rest_count))

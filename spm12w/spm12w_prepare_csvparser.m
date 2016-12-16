@@ -86,6 +86,14 @@ sids = deblank(subidArray{2})';
 rawformats = deblank(subidArray{3})';
 excludeseries = deblank(subidArray{4})';
 
+% Fix for the possibility that excludeseries comes up one short if no EOL or 
+% delimiter
+if size(excludeseries,2) < size(sids,2)
+    excludeseries{end+1} = '';
+end
+
+
+
 % Allow user to select the sids they want
 if isempty(args.scannerid)
     scanneridx = listdlg('PromptString', 'Select archive(s):', ...

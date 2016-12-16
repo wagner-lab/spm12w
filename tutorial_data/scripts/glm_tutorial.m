@@ -1,27 +1,32 @@
 % spm12w r6225
 % Parameters file for 1st level glm analysis and 2nd level rfx analysis
-% Last updated: April, 2015
+% Last updated: October, 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
+%
+% Tutorial note: 
+% The purpose of this file is to give you an exmaple of how to run a simple
+% GLM and how to specify the various types of contrasts for a simple study.
+%
+% Three ways to run this file: 
+% 1> spm12w    #Use the gui and select "Estimate GLM"
+% 2> spm12w_glm_compute('sid','s01','glm_file','glm_tutorial.m')
+% 3> spm12w('stage','glm', 'sids','s01','para_file','glm_tutorial.m')
 
 % User name
 glm.username = 'ddw';
 
-% Paths and names
+% GLM output directory
 glm.study_dir = '/lab/neurodata/ddw/tutorial_data';
 glm.prep_name = 'epi_norm';
 glm.glm_name = 'glm_tutorial';
+
+% GLM onsets directory name
 glm.ons_dir  = 'tutorial';
 
-% GLM Conditions (seperate by commas)
+% GLM Conditions (cell arrays seperated by commas)
 glm.events     = {'human','animal','vegetable','mineral'};
 glm.blocks     = {};
 glm.regressors = {};
-
-% GLM Parametric modualtors - Special keyword: 'allthethings'
-glm.parametrics = {}; 
-
-% GLM Model Inclusions - 1=yes 0=no
-glm.include_run = 'all'; % Specify run to model: 'all' or runs (e.g. [1,3])
 
 % GLM Contrasts - Numeric contrasts should sum to zero unless vs. baseline
 %               - String contrasts must match Condition names.
