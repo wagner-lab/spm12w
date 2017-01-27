@@ -105,6 +105,11 @@ spm12w_logger('msg',sprintf('GLM Design: %s',namestr(1:end-2)),...
 % Collapse all user conditions into a single cell array
 u_conds = [glm.events, glm.blocks, glm.regressors];
 
+% This next bit is a total hack. Because spm changes underscores to hyphens
+% we need to tweak the u_conds to match so that the searches below
+% proceed without error.
+u_conds = strrep(u_conds,'_','-');
+
 % Check if user requested the house wine.
 % NB: The house wine always goes first in SPM.xCon. 
 if isfield(glm.con,'housewine')
@@ -120,10 +125,8 @@ if isfield(glm.con,'housewine')
                          length(contrasts.name), contrasts.name{end}, ...
                          mat2str(contrasts.vals{end})), 'level',glm_con.loglevel)
     % Pour user a glass of each condition VSbaseline (including pmods)
-    for cond = u_conds
-        % Since we need to hunt down parametrics, we have to use a more
-        % complex strfind solution.
-        cond_index = find(~cellfun(@isempty,strfind(reg_names,cond{1})));
+    for cond = [u_conds, glm.parametrics]
+        cond_index = find(strcmp(reg_names,cond{1}));
         for con_i = cond_index           
             contrasts.name{end+1} = sprintf('%sVSbaseline',reg_names{con_i});
             defcon = zeros(1,length(reg_names));
@@ -176,6 +179,9 @@ for cfield = fieldnames(glm.con)'
                 % Now split each on wtspace to get members
                 poswt = strsplit(poswt);
                 negwt = strsplit(negwt);
+                % Make sure to account for any underscores switched to hyphens
+                poswt = strrep(poswt,'_','-');
+                negwt = strrep(negwt,'_','-');
                 % Convert to numeric and adjust for numel
                 poswt = ismember(reg_names,poswt)/numel(poswt);
                 negwt = ismember(reg_names,negwt)/numel(negwt);

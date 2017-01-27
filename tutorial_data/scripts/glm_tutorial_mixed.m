@@ -17,15 +17,15 @@ glm.username = 'ddw';
 
 % GLM input/output directory
 glm.prep_name = 'epi_norm';
-glm.glm_name = 'glm_tutorial';
+glm.glm_name = 'glm_tutorial_mixed';
 
 % GLM onsets directory name
 glm.ons_dir  = 'tutorial';
 
 % GLM Conditions (cell arrays seperated by commas)
 glm.events     = {'human','animal','vegetable','mineral'};
-glm.blocks     = {};
-glm.regressors = {};
+glm.blocks     = {'social_block','nonsocial_block'};
+glm.regressors = {'psychophys'};
 
 % GLM Contrasts - Numeric contrasts should sum to zero unless vs. baseline
 %               - String contrasts must match Condition names.
@@ -36,11 +36,13 @@ glm.regressors = {};
 % not your user supplied regressors under glm.regressors, so in those cases
 % you should create your own allVSbaseline and refuse the housewine). 
 glm.con.housewine = 'housewine';
-glm.con.humVSveg  = [1 0 -1 0];
+glm.con.humVSveg  = [1 0 0 -1];
 glm.con.aniVSmin  = [0 1 0 -1];
 glm.con.minANDhum = 'mineral human';
 glm.con.humVSall  = 'human vs. animal vegetable mineral';
+glm.con.socVSnsoc = 'social_block vs. nonsocial_block';
+glm.con.psychoreg = 'psychophys';
 
 % RFX Specification
 glm.rfx_name = 'rfx_tutorial';
-glm.rfx_conds = {'allVSbaseline','humVSall'};
+glm.rfx_conds = {'allVSbaseline','humVSall','socVSnsoc','psychoreg'};

@@ -32,7 +32,7 @@ function glm = spm12w_glm_build(varargin)
 %       >>spm12w_glm_build('type','events','params',glm)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: December, 2016
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: January, 2017
 % # TODO: Figure out how to disable spm orthogonalization of regressors as
 % #       spm12 has added the ability to do so. 
 % =======1=========2=========3=========4=========5=========6=========7=========8
@@ -150,7 +150,9 @@ if ismember(args.type, {'events','blocks','regressors'})
         end
     end
     % Assign to glm structure
-    glm.X_onsets = onsets;
+    for onsfield = fields(onsets)'
+        glm.X_onsets.(onsfield{1}) = onsets.(onsfield{1});
+    end
 end
 
 % Create outlier regressors from outlier files (one column per regressor)
