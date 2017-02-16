@@ -103,7 +103,7 @@ switch args.type
                     if strcmp(mfield{1},'blocks') && p_spm.block_conv == 0
                         spm12w_logger('msg', ['[DEBUG] block_conv ', ...
                             'parameter = 0. Blocks will not be convolved ', ...
-                            'with HRF'],'level',glm.loglevel)
+                            'with HRF'],'level',p_spm.loglevel)
                         % Generate custom block onset and add tp C
                         block = zeros(sum(p_spm.nvols),1);
                         % Switch from zero indexing to 1 indexing to adjust

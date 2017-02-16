@@ -169,6 +169,7 @@ def.mask = fullfile(def.imgfiledir,'bigmask_3x3x3.nii');
 def.runsplit    = 0;     % Seperate GLM per run?
 def.design_only = 0;     % Design only (i.e., no data)
 def.include_run = 'all'; % Specify run to model: 'all' or runs (e.g. [1,3])
+def.runadjust   = 1;     % Adjust onsets for the modeled runs. 
 def.use_smooth  = 1;     % Run GLM on: 1 = smoothed, 2 = unsmoothed
 def.duration    = 0;     % Event/Block Duration (same units as glm.time). 
                          % Dur files will override.

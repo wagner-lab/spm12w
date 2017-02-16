@@ -144,7 +144,7 @@ end
 % onsets (which always describe all runs) need to be adjusted by removing 
 % the excluded run(s) and by altering the value of the onsets following the
 % excluded run(s). 
-if any(idx_bool == 0) % only adjust if necessary.
+if any(idx_bool == 0) && glm.runadjust == 1 % only adjust if necessary.
     spm12w_logger('msg',sprintf(['Adjusting onsets, durations,  ',...
                   'parametrics and/or regressors for the included runs: %s'], ...
                   mat2str(glm.include_run)), 'level',glm.loglevel)  
