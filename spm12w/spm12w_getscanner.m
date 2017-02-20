@@ -22,7 +22,7 @@ function p = spm12w_getscanner(varargin)
 %                         './raw/s01/epi_r02.nii.gz'}, p)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: November, 2014 | Updated: September, 2016
+% # Author: Dylan Wagner | Created: November, 2014 | Updated: February, 2017
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 args_defaults = struct('epifiles','', 'p','');
@@ -55,7 +55,21 @@ for ses_i = 1:length(args.epifiles)
         outfile = epifiles{ses_i};
     end
     niihdr = spm_vol(outfile);
-    tr(ses_i) = niihdr(1).private.timing.tspace; %set tr
+    % In some cases the nifti hdr does not contain TR information, in which
+    % case user needs to set that manually. Because the private info in niihdr
+    % is a nifti object, we can't use isfield and have to do this hack.
+    if ~isempty(niihdr(1).private.timing)
+        tr(ses_i) = niihdr(1).private.timing.tspace; %set tr
+    elseif isfield(p,'tr')
+        tr(ses_i) = p.tr; 
+    else
+        spm12w_logger('msg',['[EXCEPTION] No TR information present in ' ... 
+                  'nifti hdr (i.e., private.timing.tspace). Please manually ' ...
+                  'specify the TR in your parameters file. Aborting...'],...
+                  'level',p.loglevel)
+        diary off
+        error('No TR information present in nifti header...')
+    end
     nvols(ses_i) = length(niihdr); %number of vols in niiheader.
     nslice(ses_i) = min(niihdr(1).dim); %assume smallest dimension is slices.
     % now cleanup temp zip dir
