@@ -55,13 +55,15 @@ for ses_i = 1:length(args.epifiles)
         outfile = epifiles{ses_i};
     end
     niihdr = spm_vol(outfile);
-    % In some cases the nifti hdr does not contain TR information, in which
-    % case user needs to set that manually. Because the private info in niihdr
+    % In some cases the nifti hdr does not contain TR information or the user 
+    % wants to override the TR in the nifti header due to an improper header
+    % Thus we give priority to manually specified TR, followed by the TR 
+    % in the niftiheader. Note that because the private info in niihdr
     % is a nifti object, we can't use isfield and have to do this hack.
-    if ~isempty(niihdr(1).private.timing)
-        tr(ses_i) = niihdr(1).private.timing.tspace; %set tr
-    elseif isfield(p,'tr')
+    if isfield(p,'tr')
         tr(ses_i) = p.tr; 
+    elseif ~isempty(niihdr(1).private.timing)
+        tr(ses_i) = niihdr(1).private.timing.tspace; %set tr
     else
         spm12w_logger('msg',['[EXCEPTION] No TR information present in ' ... 
                   'nifti hdr (i.e., private.timing.tspace). Please manually ' ...
