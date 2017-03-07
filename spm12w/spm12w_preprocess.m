@@ -36,7 +36,7 @@ function spm12w_preprocess(varargin)
 %                           'para_file','./scripts/username/p_tutorial.m')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: September, 2016
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: March, 2017
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -208,12 +208,12 @@ if p.slicetime
                 epi_i = epi_i + 1;
             end
         end  
-        % Perform slice time correction
-        spm12w_logger('msg',sprintf('TR for current sessions: %.1f', tr{1}), ...
+        % Perform slice time correction       
+        spm12w_logger('msg',sprintf('TR for current sessions: %s', num2str(tr{1})), ...
                      'level',p.loglevel)  
-        spm12w_logger('msg',sprintf('Reference slice: %d', p.refslice), ...
+        spm12w_logger('msg',sprintf('Reference slice order/time: %s', num2str(p.refslice)), ...
                      'level',p.loglevel)  
-        spm12w_logger('msg',sprintf('Slice time acquisition order: %s', ...
+        spm12w_logger('msg',sprintf('Slice time acquisition order/time: %s', ...
                       mat2str(p.sliceorder)), 'level',p.loglevel)                
         TA = tr{1}-tr{1}/p.nslice;    
         spm_slice_timing(epifiles,p.sliceorder,p.refslice, ...

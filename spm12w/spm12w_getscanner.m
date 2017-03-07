@@ -22,7 +22,7 @@ function p = spm12w_getscanner(varargin)
 %                         './raw/s01/epi_r02.nii.gz'}, p)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: November, 2014 | Updated: February, 2017
+% # Author: Dylan Wagner | Created: November, 2014 | Updated: March, 2017
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 args_defaults = struct('epifiles','', 'p','');
@@ -90,7 +90,7 @@ if length(unique(nslice)) == 1
     p.nvols  = nvols;
     p.tr     = tr;
     % Determine slice order 
-    % Get potential json name
+    % Get potential json name, assumes all runs have same sliceorder!
     [epidir,jname,~] = fileparts(args.epifiles{1});
     jname = strtok(jname,'.'); % in case fileparts left .nii ext
     jpath = fullfile(epidir,[jname,'.json']);
@@ -99,7 +99,9 @@ if length(unique(nslice)) == 1
         % Determine slice order from json
         % Load json and process string (this is clunky because matlab has no 
         % *documented* json parser and I'm hesitant to use the internal one
-        % in case they break it in future updates).        
+        % in case they break it in future updates).       
+        spm12w_logger('msg',sprintf(['[DEBUG] Loading slicetiming info from ', ... 
+                  'SliceTiming field at file:%s'], jpath),'level',p.loglevel)
         fid = fopen(jpath);
         raw = fread(fid,inf);
         str = char(raw');
@@ -107,17 +109,43 @@ if length(unique(nslice)) == 1
         [tmp_str,~] = strsplit(str,'"SliceTiming": [');
         [tmp_str,~] = strsplit(tmp_str{2},']');
         slicetiming = str2num(tmp_str{1});
-        % Now convert to sliceorder
-        [~, p.sliceorder] = ismember(slicetiming,sort(slicetiming));
-        p.sliceorder = p.sliceorder';
+        % Some json files seems to store SliceTiming in columns (Dartmouth)
+        % others seem to store SliceTiming in rows (OSU). So only transpose
+        % if necessary (i.e., rows).
+        [m,n] = size(slicetiming);
+        if m > n
+            p.sliceorder = slicetiming';
+        else
+            p.sliceorder = slicetiming;
+        end   
+        % Check if simultaneous slice acquisition by looking to see if there  
+        % are duplicate slice times.
+        if length(unique(p.sliceorder)) < length(p.sliceorder)
+            spm12w_logger('msg',['Detected multiple identical slicetimes, ', ...
+                          'assuming multi-slice acquisition'],'level',p.loglevel)
+            spm12w_logger('msg',sprintf('SMS Slicetiming (json) is: %s', ...
+                      mat2str(p.sliceorder)),'level',p.loglevel)
+            p.refslice = p.sliceorder(p.refslice);
+            spm12w_logger('msg',sprintf('SMS Reference slice time is: %1.3f', ...
+                      p.refslice),'level',p.loglevel)
+        else
+            % Convert to sliceorder
+            [~, p.sliceorder] = ismember(p.sliceorder,sort(p.sliceorder)); 
+            spm12w_logger('msg',sprintf('Sliceorder (json) is: %s', ...
+                      mat2str(p.sliceorder)),'level',p.loglevel)
+        end
     elseif strcmp(p.sformula, 'philips')
     % Formula for interleaved sqeuence on Philips Achieva 3T
         for i = 1:round(sqrt(p.nslice))
             p.sliceorder = [p.sliceorder i:round(sqrt(p.nslice)):p.nslice];
         end
+        spm12w_logger('msg',sprintf('Sliceorder (philips) is: %s', ...
+                      mat2str(p.sliceorder)), 'level',p.loglevel)
     else
         % Formula for interleaved bottom-up sequence 
         p.sliceorder=[1:2:p.nslice 2:2:p.nslice];
+        spm12w_logger('msg',sprintf(['Sliceorder (interleaved bottom-up) ',...
+                      'is: %s'],mat2str(p.sliceorder)), 'level',p.loglevel)
     end
 else
     spm12w_logger('msg',['[EXCEPTION] Runs do not match number of ' ... 

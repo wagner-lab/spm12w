@@ -1,5 +1,5 @@
 function spm12w_convert_old_study(varargin)
-% spm12w_readnii(old_dir, subjects, new_dir)
+% spm12w_conevert_old_study(old_dir, subjects, new_dir)
 %
 % Input
 % -----
