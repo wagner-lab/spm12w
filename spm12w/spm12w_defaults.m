@@ -27,7 +27,7 @@
 % if using options 2 or 3, that your parameters or glm file contains a typo. 
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2014 | Updated: June, 2015
+% # Author: Dylan Wagner | Created: March, 2014 | Updated: March, 2017
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % spm12w naming conventions
@@ -177,16 +177,19 @@ def.block_conv  = 1;     % Convolve blocks (0 for state/item) - 1=yes 0=no
 def.polort      = 1;     % Order of polynomials: 0:Const|1:Linear|2:Quad|3:Cubic
 def.outliers    = 1;     % Include outlier scans as nuissance? (use spm12w_art.m)
 def.move        = 1;     % Include motion regressors?
-def.nuissance   = 1;     % Include additional nuissance (run constants, constant)
+def.trends      = 1;     % Include polynomial trends as nuissance
+def.constants   = 1;     % Include n-1 run constants in model for concatenation
 
 % GLM Model Defaults
 def.ons_ext    = 'txt';   % If no extension leave blank (ie: '';)   
 def.durtime    = 'scans'; % Event duration in 'scans' (default) or 'sec' or 'ms'?
 def.time       = 'scans'; % Onsets specified in 'scans' or 'secs' 
 def.hpf        = Inf;     % HPF inf=no cutoff|otherwise cutoff in secs i.e. 128)                               
-def.autocorr   = 'none';  % Autocorrelation correction (none | 'AR(1) + w')                                   
+def.autocorr   = 'none';  % Autocorrelation correction (none | 'AR(1)')                                   
 def.demean     = 0;       % Demean condition regressors as in SPM99?
 def.orth       = 1;       % Disable w/i trial orth (0) or enable it (1, SPM default) 
+def.writeresid = 0;       % Write residual images during GLM modeling (0, SPM default)
+def.residname  = 'glm_residuals.nii'; % 4D residuals filename if writeresid = 1
 
 % GLM HRF Specifications:
 % OPTIONS:'hrf'
@@ -199,6 +202,13 @@ def.orth       = 1;       % Disable w/i trial orth (0) or enable it (1, SPM defa
 def.hrf       = 'hrf';  %Set to Finite Impulse Response for MIXED designs.
 def.hrfwindow = 20;     %For FIR: Length of HRF window 
 def.hrfbasis  = 8;      %For FIR: Number of bins per window
+
+% GLM microtime speifications: 
+def.tbins     = 16; % Time bin resolution for each scan (16, SPM default)
+def.tref      = 1;  % Reference time bin for GLM. Usually timebin corresponding 
+                    % to the ref slice during slicetime correction. For Philips
+                    % interleaved the first slice acquired is slice 1 so the
+                    % the reference timebin is also 1 if p.refslice=1. 
 
 % RFX Specification
 % rfx_type : 'one-sample'

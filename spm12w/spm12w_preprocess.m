@@ -216,10 +216,37 @@ if p.slicetime
         spm12w_logger('msg',sprintf('Slice time acquisition order/time: %s', ...
                       mat2str(p.sliceorder)), 'level',p.loglevel)                
         TA = tr{1}-tr{1}/p.nslice;    
-        spm_slice_timing(epifiles,p.sliceorder,p.refslice, ...
-                        [TA/(p.nslice-1) tr{1}-TA]);                     
+        % Check if we're in multiband by looking at unique slicetimes and
+        % set slicetiming variable for spm_slice_timing.m and also generate
+        % recommendations for GLM microtime resolution and onset.
+        if length(unique(p.sliceorder)) < length(p.sliceorder)
+            slicetiming = [0 tr{1}];
+        else
+            slicetiming = [TA/(p.nslice-1) tr{1}-TA];
+        end
+        spm_slice_timing(epifiles,p.sliceorder,p.refslice,slicetiming);
     end    
     spm12w_logger('msg','Slice time correction complete...', 'level',p.loglevel)
+    % Tell user ideal microtime resolution and onsets
+    if length(unique(p.sliceorder)) < length(p.sliceorder)
+        diag_nbins = numel(unique(p.sliceorder));
+        [~,diag_refbin] = find(unique(p.sliceorder)==p.refslice);
+        spm12w_logger('msg',sprintf(['Recommended GLM microtime resolution ',...
+                  'for %d multi-band slices is: %d'], p.nslice, diag_nbins),...
+                  'level',p.loglevel)
+        spm12w_logger('msg',sprintf(['Recommended GLM microtime onset for ',...
+                      'multi-band reference slice %.3f is: %d'], p.refslice, ...
+                      diag_refbin),'level',p.loglevel) 
+    else
+        diag_nbins = numel(unique(p.sliceorder));
+        [~,diag_refbin] = find(unique(p.sliceorder)==p.refslice);
+        spm12w_logger('msg',sprintf(['Recommended GLM microtime resolution ',...
+                  'for %d slices is: %d'], p.nslice, diag_nbins),...
+                  'level',p.loglevel)
+        spm12w_logger('msg',sprintf(['Recommended GLM microtime onset for ',...
+                      'reference slice %d is: %d'], p.refslice,...
+                      diag_refbin),'level',p.loglevel)
+    end
     p.fmri = ['a',p.fmri];
 end
 

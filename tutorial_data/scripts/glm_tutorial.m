@@ -1,16 +1,29 @@
-% spm12w r6225
+% spm12w r6906
 % Parameters file for 1st level glm analysis and 2nd level rfx analysis
-% Last updated: October, 2016
+% Last updated: March, 2017
 % =======1=========2=========3=========4=========5=========6=========7=========8
 %
 % Tutorial note: 
 % The purpose of this file is to give you an exmaple of how to run a simple
-% GLM and how to specify the various types of contrasts for a simple study.
+% GLM and RFX analysis and how to specify the various types of contrasts 
+% for a simple event-related study.
 %
 % Three ways to run this file: 
 % 1> spm12w    #Use the gui and select "Estimate GLM"
 % 2> spm12w_glm_compute('sid','s01','glm_file','glm_tutorial.m')
 % 3> spm12w('stage','glm', 'sids','s01','para_file','glm_tutorial.m')
+%
+% After estimation, you can inspect the model in SPM (SPM -> REVIEW) or view
+% the PDF file in the GLM output directory. The next step is to generate
+% contrasts for each subject followed by a random effects analysis.
+%
+% Final note: Additional parameters are available in spm12w_defaults.m. For
+% example, the glm explicit mask, the microtime resolution and onsets, switches
+% to exclude motion regressors, use a high-pass-filter etc. To override a
+% default, copy it to this file and change the structure name from def.<field>
+% to glm.<field>. For an example of a default override, see the
+% glm_tutorial_hpf_ar1.m file ovverrides the hpf and autocorrelation correction
+% defaults. 
 
 % User name
 glm.username = 'ddw';

@@ -17,43 +17,44 @@
 % # Author: Dylan Wagner | Created: November, 2014 | Updated: December, 2014
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
-% spm12w user defaults 
-%   uncomment the default you want to edit and change the value below.
-
-% Begin copy of spm12w_defaults.m
-% spm12w naming conventions
+% % spm12w naming conventions
 % def.fmri         = 'epi';            % Prefix for functional data
 % def.mri          = 'anat';           % Prefix for anatomical data
 % def.mristrip     = 'brain';          % Prefix for skull stirpped anatomical data
 % def.mnitok       = 'native';         % Current space of data
-% def.preplog      = 'preprocess.log'; % Default prepro logfile name
-% def.glmlog       = 'glm_%s.log';     % Default glm logfile name. 
 %                                      % Fill in glm name at creation 
 % def.niceline     = [repmat('=',1,80)]; % A nice line for printing.
-
-% spm12w logging defaults
-% Logging level: 
-%         1-All messages shown ([INFO],[WARNING],[EXCEPTION],[DEBUG])
-%         2-Show only [INFO] & [WARNING] & [EXCEPTION]
-%         3-Show only [INFO]
-%         4-No messages (spm12w will run silently)
+% 
+% % spm12w logging defaults
+% % Logging level: 
+% %         1-All messages shown ([INFO],[WARNING],[EXCEPTION],[DEBUG])
+% %         2-Show only [INFO] & [WARNING] & [EXCEPTION]
+% %         3-Show only [INFO]
+% %         4-No messages (spm12w will run silently)
 % def.loglevel     = 1;
-
-% spm12w paths
-% p.root:       The root dir for your study
-% p.anadir:     The dir where user specific analyses are stored
-% p.auxdir:     The dir where behavioral and other auxil data are stored.
-% p.notedir:    The dir study related notes are stored
-% p.prepdir:    The dir where the current preproc pipeline is stored
-% p.qadir:      The dir where preprocessing qa output is stored
-% p.rawdir:     The dir containing the "cleaned" raw nifti files
-% p.scriptsdir: The dir where all user specific scripts are stored
-% p.datadir:    The dir where preprocessing output is stored
-% p.onsetsdir:  The dir where GLM onsets are stored
-% p.resdir:     The dir where GLM output will be saved
-% p.glmdir:     The dir name for the specifed GLM model
-% p.rfxroot:    The dir root name for all 2nd level univariate tests
-% p.rfxdir:     The dir name for the specified 2nd level test
+% def.preplog      = sprintf('%s.log', p_.prep_name); % Default prepro logfile name
+% def.glmlog       = sprintf('%s.log', p_.glm_name);  % Default glm logfile name. 
+% 
+% % spm12w paths
+% % def.spm12wloc The dir where spm12w files are located 
+% % def.root:       The root dir for your study
+% % def.anadir:     The dir where user specific analyses are stored
+% % def.auxdir:     The dir where behavioral and other auxil data are stored.
+% % def.notedir:    The dir study related notes are stored
+% % def.prepdir:    The dir where the current preproc pipeline is stored
+% % def.qadir:      The dir where preprocessing qa output is stored
+% % def.rawdir:     The dir containing the "cleaned" raw nifti files
+% % def.scriptsdir: The dir where all user specific scripts are stored
+% % def.datadir:    The dir where preprocessing output is stored
+% % def.onsdir:     The dir where glm onsets are stored
+% % def.glmdir:     The dir where glm output will be saved
+% % def.rfxdir:     The dir where 2nd level rfx output will be saved
+% % def.roidir:     The dir where roi analyses output files will be saved
+% % def.imgfiledir: The dir where img files are location (e.g., bigmask, etc.)
+% % def.roimaskdir: The dir where image based masks are stored
+% % def.roispecdir: The dir where roi spec and variable files can be found
+% % def.archtok:    The dir name where prior analyses will be archived
+% def.spm12wloc  = fileparts(which('spm12w.m'));
 % def.root       = p_.study_dir;
 % def.anadir     = fullfile(def.root,'analysis',p_.username);
 % def.auxdir     = fullfile(def.root, 'auxil');
@@ -63,73 +64,147 @@
 % def.rawdir     = fullfile(def.root, 'raw', p_.sid);
 % def.scriptsdir = fullfile(def.root, 'scripts', p_.username);
 % def.datadir    = fullfile(def.prepdir, p_.sid);
-% def.onsetsdir  = fullfile(def.auxdir, 'onsets', p_.onsets_dir);
-% def.resdir     = fullfile(def.anadir, 'results');
-% def.glmdir     = fullfile(def.resdir, p_.sid, p_.glm_dir);
-% def.rfxroot    = fullfile(def.resdir, 'rfx');
-% def.rfxdir     = fullfile(def.rfxroot, p_.rfx_dir);
-                    
-% spm12w defaults for preprocessing
-% Preprocessing defaults
-% def.trimvols = 0;         % Trim vols off front & back of session (default=0)
-%                           % can be vector [frontVols, backVols] i.e., [5,15].
-%                           % or matrix (sess X vols) [5,15; 2,12].                         
+% def.onsdir     = fullfile(def.auxdir, 'onsets', p_.ons_dir);
+% def.glmdir     = fullfile(def.anadir, 'glm', p_.glm_name, p_.sid);
+% def.rfxdir     = fullfile(def.anadir, 'rfx', p_.rfx_name);
+% def.roidir     = fullfile(def.anadir, 'roi', p_.roi_name);
+% def.imgfiledir = fullfile(def.spm12wloc,'img_files');
+% def.roimaskdir = fullfile(def.spm12wloc,'roi_masks');
+% def.roispecdir = fullfile(def.auxdir,'roicsv');
+% def.archtok = 'archive'; 
+% 
+% % Utility function defaults
+% def.resample = 0; %Resampling for voxel extraction in spm12w_readnii
+%                    
+% % spm12w defaults for preprocessing
+% % Preprocessing defaults
+% def.trimvols = 0;           % Trim vols off front & back of session (default=0)
+%                             % can be vector [frontVols, backVols] i.e., [5,15].
+%                             % or matrix (sess X vols) [5,15; 2,12].                         
 % def.shuffle    = 1;         % Shuffle check
 % def.despike    = 0;         % Despiking
 % def.slicetime  = 1;         % Slicetime correction
 % def.realign    = 1;         % Motion correction
 % def.snr        = 1;         % Calculate snr
 % def.slices     = 1;         % Calculate slice noise
-% def.matkill    = 1;         % Delete intermediate mat files during cleanup
-                            
-% Despiking defaults
+% 
+% % Despiking defaults
 % def.cut        = [2.5,4];   % Afni defaults for despiking
 % def.c_order    = 'nvols/30';% Afni defaults for despiking
-% def.polyord    = 2;         % Number of polynomials for despiking
+% def.dpolort    = 2;         % Number of polynomials for despiking
 % def.least_sq   = 0;         % If 0 then do L1 regression for despiking
 % def.dilate     = 4;         % Dilates spm's "automask" by factor during despiking                          
-                       
-% Slicetime correction defaults
+%                        
+% % Slicetime correction defaults
 % def.sformula   = 'philips'; % Slice order formula ('philips' or 'regular')
 % def.refslice   = 1;         % Reference slice for slice timing
-
-% Realign defaults
-% def.realign_rtm = 1;      % Realign to 1st only (0) or 2pass(1st then sess mean) (1)
-% def.realign_quality = 1;  % Quality versus speed trade-off. SPM12 default 0.9
-
-% Cleanup defaults
-% def.cleanup    = 1;         % 0 = keep all files (useful for debugging)
-%                             % 1 = delete all but the smoothed epi
-%                             % 2 = delete all but the smoothed and unsmoothed epi
-% def.cleanupzip = 0;         % gzip final datasets (0 = no). 
-
-% Dartel defaults
-% def.biasreg       = 0.0001;   % Intensity bias regularisation
-% 							  % (0 | 0.00001 | *0.0001 | 0.001 | 0.01 | 0.1 | 1 | 10) 
-% def.mrf           = 2;        % Segmentation cleanup via MRF (0 | 1 | *2 | 3 | 4)
-% def.warpreg       = 4;        % Warp regularisation (spm default:4|can use 0.4 for T1)                        
-% def.sampling      = 3;        % Sampling distance (1|2|*3) < 3mm will slow computation 
-% def.tissues       = 2;        % Tissue classes for template (1:GM|*2:GM+WM|3:GM+WM+CSF)
-% def.dartelsmooth  = 6;        % Smooting kernel for DARTEL to MNI (GM,WM,EPI only)
-
-% Normalization and write parameters
-% Interpolation set to 7 bsplines gives a less blury normalized EPI.
-% After smoothing that extra spatial resolution is lost.
-% However, for studies with low smoothing, it might be worth bumping up
-% the interp_r and interp_w and interp_c.
-% r = realign, w = unwarp, c = coregister
+% 
+% % Realign defaults
+% def.realign_rtm = 1;     % Realign to 1st only (0) or 2pass(1st then sess mean) (1)
+% def.realign_quality = 1; % Quality versus speed trade-off. SPM12 default 0.9
+% 
+% % Normalization defaults
+% def.coreg2epi = 1;       % Coregister anatomy to mean epi image
+% def.ebiasreg   = 0.0001; % Intensity bias regularisation
+% def.ebiasfwhm  = 60;     % bias fwhm
+% def.etpm       = fullfile(spm('dir'),'tpm/TPM.nii'); % tissue prob maps
+% def.esamp      = 3;       % Sampling distance tradoff (smaller uses more data)
+% 
+% 
+% %spm8w leftovers, might need them
+% %def.mrf           = 2;        % Segmentation cleanup via MRF (0 | 1 | *2 | 3 | 4)
+% %def.warpreg       = 4;        % Warp regularisation (spm default:4|can use 0.4 for T1)                        
+% %def.sampling      = 3;        % Sampling distance (1|2|*3) < 3mm will slow computation 
+% %def.tissues       = 2;        % Tissue classes for template (1:GM|*2:GM+WM|3:GM+WM+CSF)
+% %def.dartelsmooth  = 6;        % Smooting kernel for DARTEL to MNI (GM,WM,EPI only)
+% 
+% % Normalization and write parameters
+% % Interpolation set to 7 bsplines gives a less blury normalized EPI.
+% % After smoothing that extra spatial resolution is lost.
+% % However, for studies with low smoothing, it might be worth bumping up
+% % the interp_r and interp_w and interp_c.
+% % r = realign, w = unwarp, c = coregister
 % def.wrap_r     = [0 0 0];     %SPM12/8 default [0 0 0] | spm2w was [0 1 0]
 % def.wrap_w     = [0 0 0];     %SPM12/8 default [0 0 0] | spm2w was [0 1 0]
 % def.interp_r   = 7;           %SPM12/8 default 4       | spm2w was 7
 % def.interp_w   = 7;           %SPM12/8 default 4       | spm2w was 7
 % def.interp_c   = 7;           %SPM12/8 default 4       | spm2w was 4
-% def.voxsize    = [3 3 3];     %SPM12/8 default [2x2x2] | Don't resample
-% def.boundbox   = [-78 -117 -72;...
-%                  78 76 86];   %SPM12 default is [-78 -112 -70; 78 76 85]
-%                               %SPM8 default is [-78 -112 -50; 78 76 85] 
-% 							  %But that's for 2x2x2.
-%                               %Ours works better for 3x3x3
-                              
-% Brain mask
-% Can use either bigmask in 1x1x1 or 3x3x3
-% def.mask = 'bigmask.nii';
+% def.evoxsize   = [3 3 3];     %SPM12/8 default [2x2x2] | Don't resample
+% def.avoxsize   = [1 1 1];     %SPM12/8 default [2x2x2] | Don't resample
+% def.boundbox   = [-78 -114 -72;...
+%                    78 78 84]; %SPM12 default is [-78 -112 -70; 78 76 85]
+%                               %SPM8 default is [-78 -112 -50; 78 76 85]
+%                               %Ours accomodates with 3x3x3 and 2x2x2. 
+% 
+% % Slices noise defaults
+% def.noiseth = [5,15]; % Defaults for displaying slice noise figures. 
+%                       % May need tweaking for different scanners.
+% 
+% % Cleanup defaults
+% def.cleanup    = 1;  % 0 = keep all files (useful for debugging)
+%                      % 1 = delete all but the last stage of preprocessing (usually 's')
+%                      % 2 = delete all but the last 2 stages of preprocessing (usually 'sw')
+%                      % 3 = delete all but the last 2 stages of prerocessing and the raw epi
+% def.matkill    = 1;  % Delete intermediate mat files during cleanup
+% def.cleanupzip = 1;  % gzip final datasets (0 = no). 
+% 
+% % Brain mask
+% % Can use either bigmask in 1x1x1 or 3x3x3
+% def.mask = fullfile(def.imgfiledir,'bigmask_3x3x3.nii');
+% 
+% % GLM Model Specifications
+% def.runsplit    = 0;     % Seperate GLM per run?
+% def.design_only = 0;     % Design only (i.e., no data)
+% def.include_run = 'all'; % Specify run to model: 'all' or runs (e.g. [1,3])
+% def.runadjust   = 1;     % Adjust onsets for the modeled runs. 
+% def.use_smooth  = 1;     % Run GLM on: 1 = smoothed, 2 = unsmoothed
+% def.duration    = 0;     % Event/Block Duration (same units as glm.time). 
+%                          % Dur files will override.
+% def.block_conv  = 1;     % Convolve blocks (0 for state/item) - 1=yes 0=no
+% def.polort      = 1;     % Order of polynomials: 0:Const|1:Linear|2:Quad|3:Cubic
+% def.outliers    = 1;     % Include outlier scans as nuissance? (use spm12w_art.m)
+% def.move        = 1;     % Include motion regressors?
+% def.trends      = 1;     % Include polynomial trends as nuissance
+% def.constants   = 1;     % Include n-1 run constants in model for concatenation
+% 
+% % GLM Model Defaults
+% def.ons_ext    = 'txt';   % If no extension leave blank (ie: '';)   
+% def.durtime    = 'scans'; % Event duration in 'scans' (default) or 'sec' or 'ms'?
+% def.time       = 'scans'; % Onsets specified in 'scans' or 'secs' 
+% def.hpf        = Inf;     % HPF inf=no cutoff|otherwise cutoff in secs i.e. 128)                               
+% def.autocorr   = 'none';  % Autocorrelation correction (none | 'AR(1)')                                   
+% def.demean     = 0;       % Demean condition regressors as in SPM99?
+% def.orth       = 1;       % Disable w/i trial orth (0) or enable it (1, SPM default) 
+% def.writeresid = 0;       % Write residual images during GLM modeling (0, SPM default)
+% def.residname  = 'glm_residuals.nii'; % 4D residuals filename if writeresid = 1
+% 
+% % GLM HRF Specifications:
+% % OPTIONS:'hrf'
+% %         'hrf (with time derivative)'
+% %         'hrf (with time and dispersion derivatives)'
+% %         'Fourier set'
+% %         'Fourier set (Hanning)'
+% %         'Gamma functions'
+% %         'Finite Impulse Response'
+% def.hrf       = 'hrf';  %Set to Finite Impulse Response for MIXED designs.
+% def.hrfwindow = 20;     %For FIR: Length of HRF window 
+% def.hrfbasis  = 8;      %For FIR: Number of bins per window
+% 
+% % GLM microtime speifications: 
+% def.tbins     = 16; % Time bin resolution for each scan (16, SPM default)
+% def.tref      = 1;  % Reference time bin for GLM. Usually timebin corresponding 
+%                     % to the ref slice during slicetime correction. For Philips
+%                     % interleaved the first slice acquired is slice 1 so the
+%                     % the reference timebin is also 1 if p.refslice=1. 
+% 
+% % RFX Specification
+% % rfx_type : 'one-sample'
+% %            'two-sample' %not yet implemented
+% %            'anova1'     %not yet implemented
+% def.rfx_type  = 'one-sample';
+% def.rfx_im    = 1; % Implicit masking for NaN & 0 values at 2nd level.
+% 
+% % ROI Specification
+% def.roi_size  = 6;  % Default roi size is 6mm
+% def.spec_file = ''; % name of a csv file specifying rois
+% def.var_file  = ''; % name of a csv file with subject variables
