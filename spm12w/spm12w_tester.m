@@ -76,8 +76,6 @@ if any(args.tests==0)
     spm12w_prepare
 end
 
-args.sids
-isempty(args.sids)
 % If sids is empty and user is requesting preprocessing, check in raw instead of
 % prep. 
 if isempty(args.sids)     
@@ -103,12 +101,15 @@ for testcase = args.tests
                    'parcores',args.parcores);
                
         case 2 
+            spm12w('stage','prep','sids',args.sids, 'para_file',...
+                   'p_tutorial_spm12norm.m','parloop',args.parloop,...
+                   'parcores',args.parcores);
+     
+        case 3 % DARTEL
             % Segmentation of anatomical images using p_tutorial_dartel.m
             for sid = args.sids
                 spm12w_seg8(sid{1},'p_tutorial_dartel.m');     
             end
-     
-        case 3 % DARTEL
             % Dartel template creation followed by Dartel normalization.
             spm12w_dartel('template',args.sids,fullfile('scripts',...
                           'p_tutorial_dartel.m'));

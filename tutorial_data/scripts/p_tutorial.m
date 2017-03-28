@@ -1,4 +1,3 @@
-% spm12w r6225
 % Parameters file for fMRI preprocessing
 % Last updated: September 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
