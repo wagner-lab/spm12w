@@ -57,7 +57,7 @@ args = spm12w_args('nargs', 2, 'defaults', args_defaults, 'arguments', varargin)
 % If empty, proceed as usual. 
 % Otherwise generate curve fitting validation figure. 
 if isempty(args.validate)
-    niidata = spm12w_readnii('niifile', args.niifile, 'level', args.loglevel);
+    niidata = spm12w_readnii('niifiles', args.niifile, 'level', args.loglevel);
     % Generate despike design matrix (xmat) with internal function
     xmat = make_xmat(length(niidata.hdr), args.c_order, args.polort); 
     % Create empty data matrix
