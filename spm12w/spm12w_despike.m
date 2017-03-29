@@ -44,7 +44,7 @@ function spm12w_despike(varargin)
 %   >> spm12w_despike('niifile', 'epi_r01.nii', 'validate', [22,22,22])
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: November, 2014 | Updated: December, 2014
+% # Author: Dylan Wagner | Created: November, 2014 | Updated: March, 2017
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -57,14 +57,13 @@ args = spm12w_args('nargs', 2, 'defaults', args_defaults, 'arguments', varargin)
 % If empty, proceed as usual. 
 % Otherwise generate curve fitting validation figure. 
 if isempty(args.validate)
-    niidata = spm12w_readnii('niifiles', args.niifile, 'level', args.loglevel);
+    niidata = spm12w_readnii('niifiles', args.niifile, 'loglevel', args.loglevel);
     % Generate despike design matrix (xmat) with internal function
-    xmat = make_xmat(length(niidata.hdr), args.c_order, args.polort); 
+    xmat = make_xmat(length(niidata.hdrs), args.c_order, args.polort); 
     % Create empty data matrix
     ds_data = zeros(size(niidata.data));
     % loop over voxels (can we do this more effeicently? slicewise?)
-    for i_3 = 1:1%size(niidata.data,3)
-        fprintf('Slice:%d of %d\n', i_3, size(niidata.data,3));
+    for i_3 = 1:size(niidata.data,3)        
         spm12w_logger('msg',sprintf('Despiking: slice %d of %d', ...
               i_3, size(niidata.data,3)), 'level',args.loglevel)
         for i_2 = 1:size(niidata.data,2)
@@ -101,8 +100,8 @@ if isempty(args.validate)
         end
     end
     % Write despiked data to output filename
-    %spm12w_writenii('niifile',args.outfile, ...
-   %                     'hdr',niidata.hdr,'data',ds_data);                     
+    spm12w_writenii('niifile',args.outfile, ...
+                    'hdr',niidata.hdrs,'data',ds_data);                     
 else
     % Validation of curve fitting technique against afni's 3dDespike curve
     % --------------------------------------------------------------------
@@ -160,7 +159,7 @@ function xmat = make_xmat(nvols, c_order, polort)
         c = round(eval(c_order));
     end
     polys = 0:polort;              % Full set of polys
-    n_pred = 2*c+polyord+1;        % Number of predictors
+    n_pred = 2*c+polort+1;         % Number of predictors
     x = (1:nvols)';                % x-values are n_vols.
     xmat = zeros(nvols, n_pred);   % Zero design matrix 
 

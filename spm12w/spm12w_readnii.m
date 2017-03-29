@@ -33,7 +33,7 @@ function niidata = spm12w_readnii(varargin)
 % hdr_only : Flag to return only the hdr and not load any data (default=0) 
 %
 % vox_only : Flag to return only the voxel, sphere or mask values and not the 
-%            full data matrix (default=1). Only functions if voxels, spehres
+%            full data matrix (default=1). Only functions if voxels, spheres
 %            or masks have been specified. 
 %
 % resample : Type of resampling for extracting voxel values. Resampling can
@@ -221,12 +221,12 @@ for hdr = hdrs
                 case 'mask'
                     niidata(end).maskvox = roi;
                     niidata(end).maskdata = voxdata;
-            end
-            % Assign the full data matrix if it exists.
-            if exist('data', 'var')
-                niidata(end).data = data;
-            end   
+            end 
         end
     end
+    % Assign the full data matrix if it exists.
+    if exist('data', 'var')
+        niidata(end).data = data;
+    end  
 end
 
