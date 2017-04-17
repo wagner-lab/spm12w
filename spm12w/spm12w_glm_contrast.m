@@ -110,6 +110,10 @@ u_conds = [glm.events, glm.blocks, glm.regressors];
 % proceed without error.
 u_conds = strrep(u_conds,'_','-');
 
+% Create empty structure fields
+contrasts.name = [];
+contrasts.vals = [];
+
 % Check if user requested the house wine.
 % NB: The house wine always goes first in SPM.xCon. 
 if isfield(glm.con,'housewine')
