@@ -7,7 +7,7 @@
 p.username = 'ddw';
 
 % Preprocessing output directory
-p.prep_name = 'epi_norm';
+p.prep_name = 'spm12_norm';
 
 % Preprocessing Routines - 1=yes 0=no
 p.unwarp        = 1; % Unwarping (correct field inhomogeneties)      

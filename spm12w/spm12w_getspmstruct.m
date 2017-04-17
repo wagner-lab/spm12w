@@ -31,7 +31,7 @@ function SPM = spm12w_getspmstruct(varargin)
 %   >> JOB = spm12w_getspmstruct('type, 'rfx', 'params', rfx)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: January 2015 | Updated: April, 2015
+% # Author: Dylan Wagner | Created: January 2015 | Updated: March, 2017
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -53,7 +53,7 @@ switch args.type
         SPM.xY.RT          = p_spm.tr;                % experiment TR in seconds
         SPM.xGX.iGXcalc    = 'None';                  % global normalization: OPTIONS:'Scaling'|'None'
         SPM.xX.K.HParam    = p_spm.hpf;               % high-pass filter cutoff (secs) [Inf = no filtering] 
-        SPM.xVi.form       = p_spm.autocorr;          % intrinsic autocorrelations: OPTIONS: 'none'|'AR(1) + w' 
+        SPM.xVi.form       = p_spm.autocorr;          % intrinsic autocorrelations: OPTIONS: 'none'|'AR(1)' 
         % basis functions and timing parameters
         SPM.xBF.name       = p_spm.hrf;     % OPTIONS:'hrf'
                                             %         'hrf (with time derivative)'
@@ -63,8 +63,8 @@ switch args.type
                                             %         'Gamma functions'
                                             %         'Finite Impulse Response'
 
-        SPM.xBF.T          = 16;            % number of time bins per scan
-        SPM.xBF.T0         = 1;             % reference time bin 
+        SPM.xBF.T          = p_spm.tbins;   % number of time bins per scan
+        SPM.xBF.T0         = p_spm.tref;    % reference time bin, should be same as ref slice.       
         SPM.xBF.UNITS      = p_spm.time;    % OPTIONS: 'scans'|'secs' for onsets 
         SPM.xBF.Volterra   = 1;             % OPTIONS: 1|2 = order of convolution; 1 = no Volterra
         % Check for presence of FIR variables
@@ -75,6 +75,7 @@ switch args.type
         if p_spm.design_only == 0
             % Specify data if not design_only
             scans = {};
+            scans_files = {};
             for run = p_spm.include_run
                 % Check if user wants to use smoothed or unsmoothed files
                 % If unsmoothed then check if the fmri token is set to smooth
@@ -88,10 +89,22 @@ switch args.type
                 else
                     epifile = sprintf('%s_r%02d.nii',p_spm.fmri,run);
                 end
-                scans{end+1} = fullfile(p_spm.datadir,epifile);
-            end
+                % Check that files aren't gzipped and stealth unzip if they are.
+                epifilepath = fullfile(p_spm.datadir,epifile);
+                if exist([epifilepath,'.gz'],'file') == 2    
+                    gunzip([epifilepath,'.gz'])
+                end    
+                scans{end+1} = spm_select('expand', epifilepath);
+                scans_files{end+1} =  epifilepath;
+            end        
             % Set to char array (SPM expects char array not cell array)
             SPM.xY.P = char(scans);  
+            % Add the fullpath to files without selected volumes. This is a 
+            % internal hack so that we can pass this to gunzip later on 
+            % in case the files are zipped. In this unlikely even that SPM
+            % decides to use this Pfiles fieldname, then all hell will break 
+            % loose.
+            SPM.xY.Pfiles = char(scans_files);
         end
         % Setup Session Structure Array for events, blocks and regressors.
         SPM.Sess.C.name = {};
@@ -145,7 +158,7 @@ switch args.type
                 end
             end
         end
-        for mfield = {'outliers','nuissance','move'};
+        for mfield = {'outliers','trends','move'}; %depreciated constants
             if isfield(p_spm,['X_',mfield{1}])
                 Csize = size(p_spm.(['X_',mfield{1}]),2);
                 Cname = {['r-',mfield{1}]};

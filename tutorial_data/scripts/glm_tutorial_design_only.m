@@ -1,8 +1,8 @@
-% spm12w r6225
+% spm12w r6906
 % Parameters file for 1st level glm analysis and 2nd level rfx analysis
-% Last updated: October, 2016
+% Last updated: March, 2017
 % =======1=========2=========3=========4=========5=========6=========7=========8
-
+%
 % Tutorial note: 
 % The purpose of this file is to give you an example of how to generate a GLM
 % model without any data. This is useful in instances where you are designing
@@ -12,6 +12,9 @@
 % Two ways to run this file: 
 % 1> spm12w_glm_compute('sid','s01','glm_file','glm_tutorial_design_only.m')
 % 2> spm12w('stage','glm', 'sids','s01','para_file','glm_tutorial_design_only.m')
+%
+% After estimation, you can inspect the model in SPM (SPM -> REVIEW) or view
+% the PDF file in the GLM output directory.
 
 % User name
 glm.username = 'ddw';
@@ -31,7 +34,6 @@ glm.outliers    = 0;   % Include outlier as nuissance in GLM
 % Because we are estimate the GLM only nad have no data, you must manually
 % specify the intended number of sessions, nvols, TR and disable including
 % movement regressors.
-
 glm.nses = 2;
 glm.nvols = [120,120];
 glm.tr = [2.5,2.5];

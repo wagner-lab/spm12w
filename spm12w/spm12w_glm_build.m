@@ -4,7 +4,7 @@ function glm = spm12w_glm_build(varargin)
 % Inputs
 % ------
 % type   : Type of glm model to build. Options are 'events', 'blocks', 
-%          'regressors', 'outliers', 'move', 'nuissance' (default = 'events').
+%          'regressors', 'outliers', 'move', 'trends' (default = 'events').
 %
 % params : A structure of glm parameters (usually loaded from a glm
 %          parameters file via spm12w_getp. 
@@ -22,17 +22,18 @@ function glm = spm12w_glm_build(varargin)
 % 'blocks'     : Standard block design with option to convolve or not with HRF
 % 'regressors' : Regressor designs (e.g., PPI) usually not convolved with HRF
 %
-% The following model types are nuissance variables and never convovled with HRF
+% The following model types are trends variables and never convovled with HRF
 % 'outliers'  : Outlier volumes (for de-weighting bad scans)
 % 'move'      : Movement/realignment parameters (optionally add 1st derivative)
-% 'nuissance' : Standard nuissance regressors (constant per n-1 runs + constant)
+% 'trends'    : Standard trends regressors
+% 'constants' : Standard run constant regressors for n-1 runs. {DEPRECIATED}
 %
 % Examples:
 %
 %       >>spm12w_glm_build('type','events','params',glm)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: January, 2017
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: March, 2017
 % # TODO: Figure out how to disable spm orthogonalization of regressors as
 % #       spm12 has added the ability to do so. 
 % =======1=========2=========3=========4=========5=========6=========7=========8
@@ -194,16 +195,13 @@ if strcmp(args.type, 'move')
     glm.X_move = cat(1,move{:});
 end
 
-% Create nuissance regressors
-if strcmp(args.type, 'nuissance')
+% Create trends regressors
+if strcmp(args.type, 'trends')
     % Make empty matrix to account for all the polys
-    polys = zeros(sum(glm.nvols), (glm.polort+1)*glm.nses-1);
+    polys = zeros(sum(glm.nvols), glm.polort*glm.nses);
     row_n = 1;
     col_m = 1;
     % Iterate through sessions and columns assigning polys.
-    % NB: We could complete in one loop and remove the code for run constants
-    % below, however we would lose the visual appeal of having run
-    % constants seperate from polynomials. Thus leaving as is.  
     for ses_i = 1:glm.nses
         spm12w_logger('msg', sprintf('[DEBUG] Generating polynomial trends (polort:%d) for run: %d', ...
                       glm.polort,glm.include_run(ses_i)),'level',glm.loglevel)
@@ -213,15 +211,25 @@ if strcmp(args.type, 'nuissance')
         end
         row_n = row_n + glm.nvols(ses_i);
     end
-    % make nses-1 run constant regressors (n-1 because spm will add a
-    % constant to design which makes the final run constant redundant) 
-    row_n = 1; %reset rows but not columns
-    for ses_i = 1:glm.nses-1
-        spm12w_logger('msg', sprintf('[DEBUG] Generating run constants (n-1 runs) for run: %d', ...
-                      glm.include_run(ses_i)),'level',glm.loglevel)
-        polys(row_n:row_n+glm.nvols(ses_i)-1, col_m) = linspace(-1,1,glm.nvols(ses_i)).^0';
-        col_m = col_m + 1;
-        row_n = row_n + glm.nvols(ses_i);
-    end
-    glm.X_nuissance = polys;
+    glm.X_trends = polys;
 end
+
+% Create run constants
+% This is depreciated March 2017 as we now add constants after SPM structure is
+% filled in or else spm_fMRI_design.m will demean these. I'm leaving this code
+% here in case we decide to revert.
+% if strcmp(args.type, 'constants')
+%     % Make empty matrix to account for all the polys
+%     runcons = zeros(sum(glm.nvols), glm.nses-1);
+%     row_n = 1;
+%     col_m = 1;
+%     for ses_i = 1:glm.nses
+%         spm12w_logger('msg', sprintf('[DEBUG] Generating run constants (n-1 runs) for run: %d', ...
+%                       glm.include_run(ses_i)),'level',glm.loglevel)
+%         %runcons(row_n:row_n+glm.nvols(ses_i)-1, col_m) = linspace(-1,1,glm.nvols(ses_i)).^0';
+%         runcons(row_n:row_n+glm.nvols(ses_i)-1, col_m) = ones(glm.nvols(ses_i),1);
+%         col_m = col_m + 1;
+%         row_n = row_n + glm.nvols(ses_i);
+%     end
+%     glm.X_constants = runcons;
+% end
