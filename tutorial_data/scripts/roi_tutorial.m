@@ -1,13 +1,12 @@
-% spm12w r6225
+% spm12w r6906
 % Parameters file for roi analysis
-% Last updated: May, 2015
+% Last updated: March, 2017
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % User name
 roi.username = 'ddw';
 
 % Paths and names
-roi.study_dir = '/lab/neurodata/ddw/tutorial_data';
 roi.glm_name = 'glm_tutorial';      % glm to use for extracting parameters
 roi.roi_name = 'roi_tutorial';      % name of directory for roi analysis output
 

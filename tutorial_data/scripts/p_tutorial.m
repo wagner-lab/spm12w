@@ -12,4 +12,4 @@ p.prep_name = 'epi_norm';
 % Preprocessing Routines - 1=yes 0=no
 p.unwarp        = 1; % Unwarping (correct field inhomogeneties)      
 p.normalize     = 'epi'; % Normalize type ('none','epi','spm12','dartel')
-p.smoothing     = 8; % Size of smoothing kernel in FWHM (0 for no smoothing)
+p.smoothing     = 8; % Size of smoothing kernel in FWHM (0 for no smoothing)a
