@@ -1,13 +1,12 @@
-% spm12w r6225
+% spm12w r6906
 % Parameters file for fMRI preprocessing
-% Last updated: October, 2014
+% Last updated: September 2016
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % User name
 p.username = 'ddw';
 
-% Paths and names
-p.study_dir = '/lab/neurodata/ddw/tutorial_data';
+% Preprocessing output directory
 p.prep_name = 'spm12_norm';
 
 % Preprocessing Routines - 1=yes 0=no
