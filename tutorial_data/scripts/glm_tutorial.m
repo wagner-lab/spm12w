@@ -63,11 +63,3 @@ glm.con.humVSall  = 'human vs. animal vegetable mineral';
 % on the conditions allVSbaseline and humVSall.
 glm.rfx_name = 'rfx_tutorial';
 glm.rfx_conds = {'allVSbaseline','humVSall'};
-
-% The assignemtns below will run a single one-way repeated measures ANOVA
-% across the conditions humVSbaseline, animalVSbaseline, vegetableVSbaseline
-% and mineralVSbaseline. The contrasts were not created by the user, but are
-% part of the free drinks you get when you ask for the housewine contrast.
-glm.oneway_name = 'rfx_oneway_tutorial';
-glm.oneway_conds = {'humanVSbaseline', 'animalVSbaseline', ...
-                    'vegetableVSbaseline', 'mineralVSbaseline'};
