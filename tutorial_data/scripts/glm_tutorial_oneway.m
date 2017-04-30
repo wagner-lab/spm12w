@@ -59,15 +59,23 @@ glm.con.humVSall  = 'human vs. animal vegetable mineral';
 % glm, however to cut down on the number of parameter files and for historical
 % reasons (e.g., spm2w, spm8w) we tack the rfx specifications here.
 
-% The assignments below will run seperate random effects one-sample t-tests
-% on the conditions allVSbaseline and humVSall.
-glm.rfx_name = 'rfx_tutorial';
-glm.rfx_conds = {'allVSbaseline','humVSall'};
-
 % The assignemtns below will run a single one-way repeated measures ANOVA
 % across the conditions humVSbaseline, animalVSbaseline, vegetableVSbaseline
 % and mineralVSbaseline. The contrasts were not created by the user, but are
 % part of the free drinks you get when you ask for the housewine contrast.
-glm.oneway_name = 'rfx_oneway_tutorial';
-glm.oneway_conds = {'humanVSbaseline', 'animalVSbaseline', ...
-                    'vegetableVSbaseline', 'mineralVSbaseline'};
+% Here, the assignments opperate differently than with the one-sample test 
+% used in the other glm tutorial files. For instance, in the one-sample case,
+% the glm.rfx_conds specifies on which conditions the one-sample t-test will
+% be performed and the output of these analysis will be written to directories
+% with the same name as the conditions with the directory name specified in
+% glm.rfx_name) serving as the parent directory. Here, the oneway_conds variable 
+% specifies which conditions0 to include in a single one-way ANOVA. 
+% The name of the directory in which the anova results will be written to is 
+% given by glm.rfx_name. 
+
+glm.rfx_type  = 'anova1'; % Normally we don't include type as we usually do 
+                          % one-sample and that's the default. Here we have to 
+                          % explicitly specify the type.
+glm.rfx_name = 'oneway_tutorial';
+glm.rfx_conds = {'humanVSbaseline', 'animalVSbaseline', ...
+                 'vegetableVSbaseline', 'mineralVSbaseline'};

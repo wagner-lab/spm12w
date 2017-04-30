@@ -243,84 +243,93 @@ switch args.dirtype
                 end     
             end
         end
-   case 'rfx'
-   % For rfx dirs, we need to make them on the fly based on dirp.rfx_conds var
-    for rfxcondir = dirp.rfx_conds
-        rfxdir = fullfile(dirp.rfxdir,rfxcondir{1});
-        spm12w_logger('msg',sprintf('Checking rfx directory: %s', ...
-                      rfxdir),'level',dirp.loglevel)
-        if ~exist(rfxdir,'dir')
-            spm12w_logger('msg',sprintf('[DEBUG] Creating directory: %s ',...
-              rfxdir),'level',dirp.loglevel)
-            mkdir(rfxdir)
-        else
-            spm12w_logger('msg',['[WARNING] Prior rfx directory found. ', ...
-                          'Directory will be cleaned...'],'level',dirp.loglevel)
-            spm12w_logger('msg',sprintf(['[DEBUG] Cleaning prior ',...
-                          'rfx directory at: %s'], rfxdir), ...
-                          'level',dirp.loglevel)  
-            rfxarch = fullfile(rfxdir,dirp.archtok); % set the arch dir name
-            timestamp = datestr(now, 'dd-mm-yyyy_HH-MM'); %timestamp for renaming
-            % Keep spmT files
-            %(todo: keep spm_fs for anova once we add
-            % anova to supported rfx models)
-            spmtlist = dir(fullfile(rfxdir,'spmT_*.nii'));   
-            for f_i = 1:size(spmtlist,1)
-                % Create the archive directory if it doesn't exist
-                if ~exist(rfxarch,'dir')
-                    mkdir(rfxarch)
+        
+    case 'rfx'
+        % For rfx dirs, we need to make them on the fly based on dirp.rfx_conds
+        if strcmp(dirp.rfx_type,'one-sample')
+            rfxcondirs = dirp.rfx_conds;
+        elseif strcmp(dirp.rfx_type,'anova1')
+            rfxcondirs = {''}; % name already given by rfxdir
+        end        
+        for rfxcondir = rfxcondirs
+            rfxdir = fullfile(dirp.rfxdir,rfxcondir{1});
+            spm12w_logger('msg',sprintf('Checking rfx directory: %s', ...
+                          rfxdir),'level',dirp.loglevel)
+            if ~exist(rfxdir,'dir')
+                spm12w_logger('msg',sprintf('[DEBUG] Creating directory: %s ',...
+                  rfxdir),'level',dirp.loglevel)
+                mkdir(rfxdir)
+            else
+                spm12w_logger('msg',['[WARNING] Prior rfx directory found. ', ...
+                              'Directory will be cleaned...'],'level',dirp.loglevel)
+                spm12w_logger('msg',sprintf(['[DEBUG] Cleaning prior ',...
+                              'rfx directory at: %s'], rfxdir), ...
+                              'level',dirp.loglevel)  
+                rfxarch = fullfile(rfxdir,dirp.archtok); % set the arch dir name
+                timestamp = datestr(now, 'dd-mm-yyyy_HH-MM'); %timestamp for renaming
+                % Keep spmT files or spmF files
+                if strcmp(dirp.rfx_type,'one-sample')
+                    spmtlist = dir(fullfile(rfxdir,'spmT_*.nii'));   
+                elseif strcmp(dirp.rfx_type,'anova1')
+                    spmtlist = dir(fullfile(rfxdir,'spmF_*.nii'));   
                 end
-                infile = fullfile(rfxdir,spmtlist(f_i).name);
-                outfile = fullfile(rfxarch, ... 
-                          sprintf('%s_%s',timestamp,spmtlist(f_i).name));
-                spm12w_logger('msg',['[DEBUG] Prior analysis ', ...
-                             'spmT file found.'], 'level',dirp.loglevel)
-                spm12w_logger('msg',sprintf('[DEBUG] Moving %s',...
-                             infile),'level',dirp.loglevel)
-                spm12w_logger('msg',sprintf('[DEBUG] To %s',...
-                             outfile),'level',dirp.loglevel)
-                movefile(infile,outfile)
-            end
-            % Check all other files (keep .mat files, delete others)
-            flist = dir(rfxdir);
-            flist = flist(3:end); % remove . and ..
-            for i = 1:length(flist) 
-                if flist(i).isdir
-                    if strcmp(flist(i).name,dirp.archtok)
-                        spm12w_logger('msg','[DEBUG] Preserving archive directory', ...
-                                      'level', dirp.loglevel) % Placeholder
-                    else
-                        spm12w_logger('msg',sprintf('[DEBUG] Removing directory: %s',...
-                                      flist(i).name),'level',dirp.loglevel)
-                        rmdir(fullfile(rfxdir,flist(i).name))
+                for f_i = 1:size(spmtlist,1)
+                    % Create the archive directory if it doesn't exist
+                    if ~exist(rfxarch,'dir')
+                        mkdir(rfxarch)
                     end
-                else    
-                    % Keep mat files
-                    keepfiles = {'SPM.mat',sprintf('%s.mat',dirp.rfx_name)};               
-                    if ismember(flist(i).name,keepfiles)
-                        % Create the archive directory if it doesn't exist
-                        if ~exist(rfxarch,'dir')
-                            mkdir(rfxarch)
-                        end
-                        infile = fullfile(rfxdir,flist(i).name);
-                        outfile = fullfile(rfxarch, ... 
-                                  sprintf('%s_%s',timestamp,flist(i).name));
-                        spm12w_logger('msg',['[DEBUG] Prior analysis ', ...
-                                     'mat file found.'], 'level',dirp.loglevel)
-                        spm12w_logger('msg',sprintf('[DEBUG] Moving %s',...
-                                     infile),'level',dirp.loglevel)
-                        spm12w_logger('msg',sprintf('[DEBUG] To %s',...
-                                     outfile),'level',dirp.loglevel)
-                        movefile(infile,outfile);
-                    else
-                        spm12w_logger('msg',sprintf('[DEBUG] Removing file: %s', ...
-                                      flist(i).name),'level',dirp.loglevel)
-                        delete(fullfile(rfxdir,flist(i).name))
-                    end            
+                    infile = fullfile(rfxdir,spmtlist(f_i).name);
+                    outfile = fullfile(rfxarch, ... 
+                              sprintf('%s_%s',timestamp,spmtlist(f_i).name));
+                    spm12w_logger('msg',['[DEBUG] Prior analysis ', ...
+                                 'stat map file found.'], 'level',dirp.loglevel)
+                    spm12w_logger('msg',sprintf('[DEBUG] Moving %s',...
+                                 infile),'level',dirp.loglevel)
+                    spm12w_logger('msg',sprintf('[DEBUG] To %s',...
+                                 outfile),'level',dirp.loglevel)
+                    movefile(infile,outfile)
                 end
-            end
-        end          
-    end
+                % Check all other files (keep .mat files, delete others)
+                flist = dir(rfxdir);
+                flist = flist(3:end); % remove . and ..
+                for i = 1:length(flist) 
+                    if flist(i).isdir
+                        if strcmp(flist(i).name,dirp.archtok)
+                            spm12w_logger('msg','[DEBUG] Preserving archive directory', ...
+                                          'level', dirp.loglevel) % Placeholder
+                        else
+                            spm12w_logger('msg',sprintf('[DEBUG] Removing directory: %s',...
+                                          flist(i).name),'level',dirp.loglevel)
+                            rmdir(fullfile(rfxdir,flist(i).name))
+                        end
+                    else    
+                        % Keep mat files
+                        keepfiles = {'SPM.mat',sprintf('%s.mat',dirp.rfx_name)};               
+                        if ismember(flist(i).name,keepfiles)
+                            % Create the archive directory if it doesn't exist
+                            if ~exist(rfxarch,'dir')
+                                mkdir(rfxarch)
+                            end
+                            infile = fullfile(rfxdir,flist(i).name);
+                            outfile = fullfile(rfxarch, ... 
+                                      sprintf('%s_%s',timestamp,flist(i).name));
+                            spm12w_logger('msg',['[DEBUG] Prior analysis ', ...
+                                         'mat file found.'], 'level',dirp.loglevel)
+                            spm12w_logger('msg',sprintf('[DEBUG] Moving %s',...
+                                         infile),'level',dirp.loglevel)
+                            spm12w_logger('msg',sprintf('[DEBUG] To %s',...
+                                         outfile),'level',dirp.loglevel)
+                            movefile(infile,outfile);
+                        else
+                            spm12w_logger('msg',sprintf('[DEBUG] Removing file: %s', ...
+                                          flist(i).name),'level',dirp.loglevel)
+                            delete(fullfile(rfxdir,flist(i).name))
+                        end            
+                    end
+                end
+            end          
+        end
+    
     case 'roi'
         spm12w_logger('msg',sprintf('Checking roi directory: %s', ...
                       dirp.roidir),'level',dirp.loglevel)
@@ -336,6 +345,7 @@ switch args.dirtype
                       'level',dirp.loglevel)  
             disp('todo, clean the ROI dir')
         end
+        
     otherwise
         spm12w_logger('msg',sprintf('[EXCEPTION] Unknown dirtype: %s', ... 
                       args.dirtype),'level',dirp.loglevel)

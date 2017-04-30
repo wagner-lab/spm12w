@@ -42,16 +42,19 @@ function spm12w_glm_rfx(varargin)
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
 % # Author: Dylan Wagner | Created: March, 2006 | Updated: September, 2015
+% # TODO: Enable rfx_type selection in 
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
-args_defaults = struct('glm_file','', 'sids','','rfx_dir','');
+args_defaults = struct('glm_file','', 'sids','','rfx_dir','','rfx_type','onesample');
 args = spm12w_args('nargs',0, 'defaults', args_defaults, 'arguments', varargin);
 
 % Load glm parameters
 rfx = spm12w_getp('type','glm', 'para_file',args.glm_file);
 
-% If rfx_dir argument was not provided, get rfx_dir from glm parameters
+% If rfx_dir argument was not provided, get rfx_dir from rfx parameters
+% First check if the provided directory contains the full analysis path. 
+% If not, adjust, else use the user provided rfx_dir.
 if ~isempty(args.rfx_dir) && isempty(strfind(args.rfx_dir,fullfile(rfx.anadir,'rfx')))
     rfx.rfxdir = fullfile(rfx.anadir, 'rfx', args.rfx_dir);
 elseif ~isempty(args.rfx_dir)
@@ -76,63 +79,141 @@ end
 % Setup directories for RFX analysis. Archive prior spmT file and spm.mat.
 spm12w_dirsetup('dirtype','rfx','params',rfx);
 
-% Perform rfx analysis on the specified conditions
-for rfxcondir = rfx.rfx_conds
-    spm12w_logger('msg',sprintf(['Performing 2nd level rfx analysis (%s) ',...
-                  'on contrast: %s'], rfx.rfx_type, rfxcondir{1}), ...
-                  'level',rfx.loglevel)
-    % Add the output dir for this rfx analysis to rfx structure and cd to it
-    rfx.rfxcondir = fullfile(rfx.rfxdir,rfxcondir{1});
-    cd(rfx.rfxcondir);
-    % RFX analysis setup. 
-    % Add file variables to rfx structure.
-    % spm12w_getspmstruct will use this to generate the SPM structure. 
-    rfx.rfxconfiles = {};
-    for sid = args.sids
-        % Load the SPM file for the GLM (do this subjectwise to be safe)
-        SPM_ = load(fullfile(rfx.glmdir,sid{1},'SPM.mat'));
-        % Find the index of the rfx contrast in the SPM.xCon
-        conidx = find(strcmp({SPM_.SPM.xCon.name},rfxcondir{1}));
-        % Use the index to get the filename of the con file for that sid
-        rfx.rfxconfiles{end+1,1} = fullfile(rfx.glmdir,sid{1},...
-                                          SPM_.SPM.xCon(conidx).Vcon.fname);
-    end
-    % Adjust paths to include spm12/config dir
-    addconfig = fullfile(fileparts(which('spm.m')),'config');
-    addpath(addconfig)
-    % Generate the SPM structure for rfx
-    rfx.SPM = spm12w_getspmstruct('type','rfx','params',rfx);  
-    % Estimate the rfx model (using spm_run_fmri_est.m)
-    job_est.spmmat = {fullfile(rfx.rfxcondir,'SPM.mat')};
-    job_est.write_residuals = 0;
-    job_est.method = struct('Classical',1);
-    spm12w_logger('msg',sprintf(['Estimating 2nd level rfx model ',...
-                  'on contrast: %s'], rfxcondir{1}), 'level',rfx.loglevel)
-    spm_run_fmri_est(job_est);
-    % Generate contrasts for the model
-    job_con.spmmat = {fullfile(rfx.rfxcondir,'SPM.mat')};
-    job_con.consess{1}.tcon = struct('name',rfxcondir{1},'weights',1,...
-                                     'sessrep','none');
-    job_con.delete = 0;
-    spm12w_logger('msg',sprintf(['Generating statistics for 2nd level rfx ',...
-              'model on contrast: %s'], rfxcondir{1}), 'level',rfx.loglevel)
-    spm_run_con(job_con);    
-    % rm spm12/config from path
-    rmpath(addconfig)
-    % Save the rfx structure
-    save(sprintf('%s.mat',rfx.rfx_name),'rfx');
-    % Remove the newly created fields in preperation for next iteration.
-    rfx = rmfield(rfx,{'rfxcondir','rfxconfiles'});
+% Perform one-sample
+switch rfx.rfx_type
+    case 'one-sample'
+        % Perform rfx analysis on the specified conditions
+        for rfxcondir = rfx.rfx_conds
+            spm12w_logger('msg',sprintf(['Performing 2nd level rfx analysis (%s) ',...
+                          'on contrast: %s'], rfx.rfx_type, rfxcondir{1}), ...
+                          'level',rfx.loglevel)
+            % Add the output dir for this rfx analysis to rfx structure and cd to it
+            rfx.rfxcondir = fullfile(rfx.rfxdir,rfxcondir{1});
+            cd(rfx.rfxcondir);
+            % RFX analysis setup. 
+            % Add file variables to rfx  structure.
+            % spm12w_getspmstruct will use this to generate the SPM structure. 
+            rfx.rfxconfiles = {};
+            for sid = args.sids
+                % Load the SPM file for the GLM (do this subjectwise to be safe)
+                SPM_ = load(fullfile(rfx.glmdir,sid{1},'SPM.mat'));
+                % Find the index of the rfx contrast in the SPM.xCon
+                conidx = find(strcmp({SPM_.SPM.xCon.name},rfxcondir{1}));
+                % Use the index to get the filename of the con file for that sid
+                rfx.rfxconfiles{end+1,1} = fullfile(rfx.glmdir,sid{1},...
+                                                  SPM_.SPM.xCon(conidx).Vcon.fname);
+            end
+            % Adjust paths to include spm12/config dir
+            addconfig = fullfile(fileparts(which('spm.m')),'config');
+            addpath(addconfig)
+            % Generate the SPM structure for rfx
+            rfx.SPM = spm12w_getspmstruct('type','rfx','params',rfx);  
+            % Estimate the rfx model (using spm_run_fmri_est.m)
+            job_est.spmmat = {fullfile(rfx.rfxcondir,'SPM.mat')};
+            job_est.write_residuals = 0;
+            job_est.method = struct('Classical',1);
+            spm12w_logger('msg',sprintf(['Estimating 2nd level rfx model ',...
+                          'on contrast: %s'], rfxcondir{1}), 'level',rfx.loglevel)
+            spm_run_fmri_est(job_est);
+            % Generate contrasts for the model
+            job_con.spmmat = {fullfile(rfx.rfxcondir,'SPM.mat')};
+            job_con.consess{1}.tcon = struct('name',rfxcondir{1},'weights',1,...
+                                             'sessrep','none');
+            job_con.delete = 0;
+            spm12w_logger('msg',sprintf(['Generating statistics for 2nd level rfx ',...
+                      'model on contrast: %s'], rfxcondir{1}), 'level',rfx.loglevel)
+            spm_run_con(job_con);    
+            % rm spm12/config from path
+            rmpath(addconfig)
+            % Save the rfx structure
+            save(sprintf('%s.mat',rfx.rfx_name),'rfx');
+            % Remove the newly created fields in preperation for next iteration.
+            rfx = rmfield(rfx,{'rfxcondir','rfxconfiles'});
+        end
+        
+    case 'anova1'
+        spm12w_logger('msg',sprintf(['Performing 2nd level rfx analysis (%s) ',...
+                      'on contrasts: %s'], rfx.rfx_type, strjoin(rfx.rfx_conds)), ...
+                      'level',rfx.loglevel)  
+        cd(rfx.rfxdir);
+        % One-Way ANOVA analysis setup using flexible factorial./
+        % Add con file variables to rfx structure. Order is subject / contrast
+        % spm12w_getspmstruct will use this to generate the SPM structure. 
+        rfx.rfxconfiles = {};
+        for sid = args.sids
+            for rfxcon = rfx.rfx_conds
+                % Load the SPM file for the GLM (do this subjectwise to be safe)
+                SPM_ = load(fullfile(rfx.glmdir,sid{1},'SPM.mat'));
+                % Find the index of the rfx contrast in the SPM.xCon
+                conidx = find(strcmp({SPM_.SPM.xCon.name},rfxcon{1}));              
+                % Use the index to get the filename of the con file for that sid
+                rfx.rfxconfiles{end+1,1} = fullfile(rfx.glmdir,sid{1},...
+                                                  SPM_.SPM.xCon(conidx).Vcon.fname);
+                % Print a log message
+                spm12w_logger('msg',sprintf(['[DEBUG] Loading sid:%s, ',... 
+                              'file:%s '],sid{1}, ...
+                              SPM_.SPM.xCon(conidx).Vcon.fname), ...
+                              'level',rfx.loglevel) 
+            end
+        end
+        % Generate factor matrix for flexible factorial
+        nsub = length(args.sids);
+        nfac = length(rfx.rfx_conds);
+        facsize = nsub*nfac;
+        rfx.rfxfacmat = [ones(facsize,1), sort(repmat(1:nsub,1,nfac))',...
+                         repmat(1:nfac,1,nsub)', ones(facsize,1)];   
+        % Adjust paths to include spm12/config dir
+        addconfig = fullfile(fileparts(which('spm.m')),'config');
+        addpath(addconfig)
+        % Generate the SPM structure for rfx
+        rfx.SPM = spm12w_getspmstruct('type','rfx','params',rfx);  
+        % Estimate the rfx model (using spm_run_fmri_est.m)
+        job_est.spmmat = {fullfile(rfx.rfxdir,'SPM.mat')};
+        job_est.write_residuals = 0;
+        job_est.method = struct('Classical',1);
+        spm12w_logger('msg',sprintf(['Estimating 2nd level one-way ANOVA ',...
+                      'for model: %s'], rfx.rfx_name), 'level',rfx.loglevel)
+        spm_run_fmri_est(job_est);
+        % Generate contrasts for the model
+        % Figure out conwts for ANOVA main effect
+        conwts = zeros(nfac-1,nfac);
+        for con_i = 1:nfac-1
+            conwts(con_i,:) = [zeros(1,con_i-1),[1,-1],zeros(1,nfac-2-(con_i-1))];            
+        end             
+        job_anova.spmmat = {fullfile(rfx.rfxdir,'SPM.mat')};
+        job_anova.consess{1}.fcon.name = 'havm';
+        job_anova.consess{1}.fcon.weights = conwts;
+        job_anova.consess{1}.fcon.sessrep = 'none';       
+        job_anova.delete = 0;
+        spm12w_logger('msg',sprintf(['Generating main effect map using ',...
+                      'contrast: %s'], mat2str(conwts)), 'level',rfx.loglevel)
+        spm_run_con(job_anova);    
+        % rm spm12/config from path
+        rmpath(addconfig)
+        % Save the rfx structure
+        save(sprintf('%s.mat',rfx.rfx_name),'rfx');
+        % Remove the newly created fields in preperation for next iteration.
+        rfx = rmfield(rfx,{'rfxfacmat','rfxconfiles'}); 
 end
 
 % Set final words
 msglist{1} = rfx.niceline;
 msglist{2} = sprintf('2nd level rfx analysis (%s) complete...', rfx.rfx_name);
-for rfxcondir = rfx.rfx_conds
-    msglist{end+1} = sprintf('rfx analysis (%s) computed for contrast: %s', ...
-                             rfx.rfx_type, rfxcondir{1});
-    msglist{end+1} = sprintf('Parameters saved to : %s', ...
-                     fullfile(rfx.rfx_name,rfxcondir{1},[rfx.rfx_name,'.mat']));
+
+switch rfx.rfx_type
+    case 'one-sample'
+        for rfxcondir = rfx.rfx_conds
+            msglist{end+1} = sprintf('rfx analysis (%s) computed for contrast: %s', ...
+                                     rfx.rfx_type, rfxcondir{1});
+            msglist{end+1} = sprintf('Parameters saved to : %s', ...
+                             fullfile(rfx.rfx_name,rfxcondir{1},[rfx.rfx_name,'.mat']));
+        end
+    
+    case 'anova1'
+        msglist{end+1} = sprintf('rfx analysis (%s) computed for model: %s', ...
+                                     rfx.rfx_type, rfx.rfx_name);
+        msglist{end+1} = sprintf('Parameters saved to : %s', ...
+                             fullfile(rfx.rfx_name,[rfx.rfx_name,'.mat']));
 end
 
 % Print final words

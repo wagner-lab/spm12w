@@ -212,8 +212,8 @@ def.tref      = 1;  % Reference time bin for GLM. Usually timebin corresponding
 
 % RFX Specification
 % rfx_type : 'one-sample'
+%            'anova1'     
 %            'two-sample' %not yet implemented
-%            'anova1'     %not yet implemented
 def.rfx_type  = 'one-sample';
 def.rfx_im    = 1; % Implicit masking for NaN & 0 values at 2nd level.
 

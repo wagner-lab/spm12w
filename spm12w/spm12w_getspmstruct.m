@@ -186,11 +186,34 @@ switch args.type
                 job.globalc.g_omit = 1;
                 job.globalm.gmsca.gmsca_no = 1;
                 job.globalm.glonorm = 1;
+                [~,dirname] = fileparts(p_spm.rfxcondir); % get the conname for msg.
             case 'two-sample'
                 % do nothing for now
-            case 'one-way-anova'
-                % do nothing
-            
+            case 'anova1'
+                job.dir = {p_spm.rfxdir}; % needs to be dir in cell
+                job.des.fblock.fac(1).name = 'subject';
+                job.des.fblock.fac(1).dept = 0;
+                job.des.fblock.fac(1).variance = 0;
+                job.des.fblock.fac(1).gmsca = 0;
+                job.des.fblock.fac(1).ancova = 0;
+                job.des.fblock.fac(2).name = p_spm.rfx_name;
+                job.des.fblock.fac(2).dept = 1;
+                job.des.fblock.fac(2).variance = 0;
+                job.des.fblock.fac(2).gmsca = 0;
+                job.des.fblock.fac(2).ancova = 0;
+                job.des.fblock.fsuball.specall.scans = p_spm.rfxconfiles;
+                job.des.fblock.fsuball.specall.imatrix = p_spm.rfxfacmat;
+                job.des.fblock.maininters{1}.fmain.fnum = 1;
+                job.des.fblock.maininters{2}.fmain.fnum = 2;
+                job.cov = struct('c', {}, 'cname', {}, 'iCFI', {}, 'iCC', {});
+                job.multi_cov = struct('files', {}, 'iCFI', {}, 'iCC', {});
+                job.masking.tm.tm_none = 1;
+                job.masking.im = p_spm.rfx_im;
+                job.masking.em = {''};
+                job.globalc.g_omit = 1;
+                job.globalm.gmsca.gmsca_no = 1;
+                job.globalm.glonorm = 1;
+                [~,dirname] = fileparts(p_spm.rfxdir); % get the oneway name for msg.                                     
             otherwise
                 spm12w_logger('msg',sprintf(['[EXCEPTION] Unknown rfx ' ... 
                 'analysis type: %s'], p_spm.rfx_type),'level',p_spm.loglevel)
@@ -198,10 +221,9 @@ switch args.type
         end
         % Fill in the spm structure 
         % Note the the spm12/config dir must be in path, this is set in
-        % spm12w_glm_rfx.m 
-        [~,conname] = fileparts(p_spm.rfxcondir); % get the conname for msg.
+        % spm12w_glm_rfx.m         
         spm12w_logger('msg',sprintf(['Generating 2nd level rfx model (%s) ',...
-                      'on contrast: %s'], p_spm.rfx_type, conname),...
+                      'on contrast: %s'], p_spm.rfx_type, dirname),...
                       'level',p_spm.loglevel)
         spmloc = spm_run_factorial_design(job);
         % load the generated SPM file
