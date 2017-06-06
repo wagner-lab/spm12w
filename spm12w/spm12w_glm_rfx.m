@@ -89,6 +89,9 @@ switch rfx.rfx_type
                           'level',rfx.loglevel)
             % Add the output dir for this rfx analysis to rfx structure and cd to it
             rfx.rfxcondir = fullfile(rfx.rfxdir,rfxcondir{1});
+            % Print a log message
+            spm12w_logger('msg',sprintf('[DEBUG] Loading files from:%s', ...
+                               rfx.rfxcondir),'level',rfx.loglevel) 
             cd(rfx.rfxcondir);
             % RFX analysis setup. 
             % Add file variables to rfx  structure.
@@ -139,6 +142,9 @@ switch rfx.rfx_type
         % One-Way ANOVA analysis setup using flexible factorial./
         % Add con file variables to rfx structure. Order is subject / contrast
         % spm12w_getspmstruct will use this to generate the SPM structure. 
+        % Print a log message
+        spm12w_logger('msg',sprintf('[DEBUG] Loading files from:%s', ...
+                               rfx.glmdir),'level',rfx.loglevel) 
         rfx.rfxconfiles = {};
         for sid = args.sids
             for rfxcon = rfx.rfx_conds
@@ -151,8 +157,8 @@ switch rfx.rfx_type
                                                   SPM_.SPM.xCon(conidx).Vcon.fname);
                 % Print a log message
                 spm12w_logger('msg',sprintf(['[DEBUG] Loading sid:%s, ',... 
-                              'file:%s '],sid{1}, ...
-                              SPM_.SPM.xCon(conidx).Vcon.fname), ...
+                              'file:%s, con:%s'],sid{1}, ...
+                              SPM_.SPM.xCon(conidx).Vcon.fname, rfxcon{1}), ...
                               'level',rfx.loglevel) 
             end
         end
@@ -181,7 +187,7 @@ switch rfx.rfx_type
             conwts(con_i,:) = [zeros(1,con_i-1),[1,-1],zeros(1,nfac-2-(con_i-1))];            
         end             
         job_anova.spmmat = {fullfile(rfx.rfxdir,'SPM.mat')};
-        job_anova.consess{1}.fcon.name = 'havm';
+        job_anova.consess{1}.fcon.name = rfx.rfx_name;
         job_anova.consess{1}.fcon.weights = conwts;
         job_anova.consess{1}.fcon.sessrep = 'none';       
         job_anova.delete = 0;
