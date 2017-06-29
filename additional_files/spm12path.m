@@ -15,12 +15,12 @@
 fprintf('=== Adding paths for spm12/spm12w/tools ... \n');
 
 % spm12 and spm12w path variables (edit these)
-spm12_path  = 'C:\Users\ddw\Dropbox\Matlab\spm12\spm12_6685';
+spm12_path  = 'C:\Users\ddw\Dropbox\Matlab\spm12\spm12_6906';
 spm12w_path = 'C:\Users\ddw\Documents\GitHub\spm12w\spm12w';
 
 % Optional ghostscript path (edit this to point local GS installation)
 % If using Matlab < 2014 or Linux you may leave this blank.
-gspath = 'C:\Program Files\gs\gs9.19\bin\';
+gspath = 'C:\Program Files\gs\gs9.21\bin\';
 
 % Optional tools paths (edit these, add additional tools to the tools var)
 tools_path   = 'C:\Users\ddw\Dropbox\Matlab\spm12\tools';

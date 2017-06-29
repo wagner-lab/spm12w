@@ -40,7 +40,7 @@ function spm12w_glm_compute(varargin)
 %                           './scripts/username/glm_tutorial.m')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: March, 2006 | Updated: September, 2016
+% # Author: Dylan Wagner | Created: March, 2006 | Updated: June, 2017
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -72,10 +72,10 @@ elseif exist(fullfile(glm.datadir,[glm.prep_name,'.mat']),'file')
     clear p % remove p structure for safety
 else
     spm12w_logger('msg', ['[EXCEPTION] Required parameters (nses, ', ...
-                  'nvols, tr) are unspecified and a prep parameter file ', ...
+                  'nvols, tr, nsclice, refslice or sliceorder) are unspecified and a prep parameter file ', ...
                   'was not found.'], 'level',glm.loglevel)
     diary off
-    error('Missing required parameters for model estimation (nses, nvols, tr)')     
+    error('Missing required parameters for model estimation (nses, nvols, tr, nslice, refslice or sliceorder)')     
 end
 
 % Show user the parameters we harvested.

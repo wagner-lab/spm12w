@@ -1,6 +1,6 @@
 % spm12w r6906
 % Parameters file for 1st level glm analysis and 2nd level rfx analysis
-% Last updated: March, 2017
+% Last updated: June, 2017
 % =======1=========2=========3=========4=========5=========6=========7=========8
 %
 % Tutorial note: 
@@ -32,11 +32,13 @@ glm.outliers    = 0;   % Include outlier as nuissance in GLM
 
 % Tutorial Note: 
 % Because we are estimate the GLM only nad have no data, you must manually
-% specify the intended number of sessions, nvols, TR and disable including
-% movement regressors.
+% specify the intended number of sessions, nvols, TR, nslice and sliceorder
+% as well as disable including movement regressors.
 glm.nses = 2;
 glm.nvols = [120,120];
 glm.tr = [2.5,2.5];
+glm.nslice = 30; 
+glm.sliceorder = 1:glm.nslice;
 glm.move = 0;
                        
 % GLM Conditions (cell arrays seperated by commas)

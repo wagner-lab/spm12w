@@ -44,7 +44,7 @@ function parameters = spm12w_getp(varargin)
 %                     'para_file','scripts/glm_h8tjazz.m')
 %
 % # spm12w was developed by the Wagner, Heatherton & Kelley Labs
-% # Author: Dylan Wagner | Created: May, 2012 | Updated: September, 2016
+% # Author: Dylan Wagner | Created: May, 2012 | Updated: June, 2017
 % =======1=========2=========3=========4=========5=========6=========7=========8
 
 % Parse inputs
@@ -103,12 +103,15 @@ if strcmp(args.type,'p')
 elseif strcmp(args.type,'roi') 
     zerofields = {'rfx_name','ons_dir','prep_name'};
 elseif strcmp(args.type,'glm')
-    zerofields = {'roi_name'}; 
-elseif strcmp(args.type,'des')
-    zerofields = {'rfx_name','ons_dir','prep_name','glm_name','roi_name'};
+    if ~isfield(p_,'design_only')
+        zerofields = {'roi_name'}; 
+    elseif p_.design_only == 1
+        zerofields = {'rfx_name','ons_dir','prep_name','glm_name','roi_name'};
+    end
 else
     zerofields = {};
 end
+
 for zfield = zerofields
     if ~isfield(p_,zfield{1})
         p_.(zfield{1}) = ''; % set field to empty string
